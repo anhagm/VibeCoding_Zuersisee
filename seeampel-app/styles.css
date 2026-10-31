@@ -1,0 +1,134 @@
+/* ===== Farben (hell/dunkel) ===== */
+:root {
+  --see: #CBDDEB;              /* wird von app.js je nach Wassertemperatur gesetzt */
+  --text: #12242B;
+  --muted: #5E7178;
+  --stern: #1B6A87;
+  --stern-leer: #B9C7CC;
+  --prognose: #6A5B8C;
+  --warn: #A5561C;
+  --warn-bg: #F5E7D8;
+  --flaeche: rgba(255, 255, 255, 0.55);
+  --linie: rgba(18, 36, 43, 0.12);
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --see: #162632;
+    --text: #E8F0F2;
+    --muted: #8FA3AA;
+    --stern: #6FC0DE;
+    --stern-leer: #34454B;
+    --prognose: #B3A6D6;
+    --warn: #E3A46E;
+    --warn-bg: #2A2019;
+    --flaeche: rgba(0, 0, 0, 0.25);
+    --linie: rgba(232, 240, 242, 0.12);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  background: var(--see);
+  color: var(--text);
+  transition: background-color .6s ease;
+  -webkit-font-smoothing: antialiased;
+}
+body.veto { background: var(--warn-bg); }
+body.fehler { background: var(--flaeche); }
+
+.app {
+  min-height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 16px) 22px calc(env(safe-area-inset-bottom) + 18px);
+}
+
+/* ===== Kopf ===== */
+.kopf { display: flex; justify-content: space-between; align-items: center; }
+.marke { font-weight: 600; font-size: 15px; letter-spacing: .02em; color: var(--muted); }
+.profil-knopf {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 15px; font-weight: 600;
+  color: var(--text); background: var(--flaeche);
+  border: 1px solid var(--linie); border-radius: 999px;
+  padding: 8px 12px 8px 14px; cursor: pointer;
+  min-height: 44px;                       /* Touch-Ziel */
+}
+.profil-knopf svg { width: 14px; height: 14px; }
+
+/* ===== Hauptinhalt ===== */
+.inhalt { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 28px 0; }
+.laden { color: var(--muted); text-align: center; }
+
+.sterne { display: flex; gap: 8px; margin-bottom: 18px; }
+.sterne svg { width: 46px; height: 46px; }
+.veto-symbol { width: 52px; height: 52px; color: var(--warn); margin-bottom: 16px; }
+
+.begruendung { font-size: 26px; line-height: 1.25; font-weight: 650; margin: 0 0 6px; letter-spacing: -0.01em; }
+.begruendung.prognose { color: var(--prognose); }
+body.veto .begruendung { color: var(--warn); }
+
+.karte {
+  margin-top: 28px; padding: 14px 16px;
+  background: var(--flaeche); border: 1px solid var(--linie); border-radius: 16px;
+}
+.karte h3 { margin: 0 0 10px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.werte { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wert { display: flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 600; white-space: nowrap; }
+.wert svg { width: 18px; height: 18px; flex: none; }
+.wert-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.prognose-zeile { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--linie); color: var(--prognose); font-size: 14px; }
+.prognose-zeile strong { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
+
+.fehler-titel { font-size: 22px; font-weight: 650; margin: 12px 0 6px; }
+.fehler-text { color: var(--muted); margin: 0 0 18px; }
+.knopf {
+  font: inherit; font-weight: 600; font-size: 16px; color: var(--text);
+  background: var(--flaeche); border: 1px solid var(--linie); border-radius: 12px;
+  padding: 12px 16px; min-height: 44px; cursor: pointer; align-self: flex-start;
+}
+
+/* ===== Fuss ===== */
+.fuss { font-size: 12px; color: var(--muted); line-height: 1.45; }
+.fuss p { margin: 0 0 4px; }
+.fuss a { color: inherit; }
+.stand { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+.stand svg { width: 13px; height: 13px; }
+.stand .veraltet { color: var(--warn); font-weight: 600; }
+.hinweis { opacity: .85; }
+
+/* ===== Profilwahl ===== */
+.auswahl {
+  border: none; padding: 0; width: min(440px, calc(100% - 32px));
+  border-radius: 22px; background: Canvas; color: var(--text);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+}
+@media (prefers-color-scheme: dark) { .auswahl { background: #1A2328; } }
+.auswahl::backdrop { background: rgba(10, 20, 25, .45); }
+.auswahl form { padding: 24px 20px 16px; }
+.auswahl h2 { margin: 0 0 4px; font-size: 22px; }
+.auswahl-text { margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+.optionen { display: grid; gap: 10px; }
+.option {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; text-align: left;
+  font: inherit; color: var(--text); background: transparent;
+  border: 1.5px solid var(--linie); border-radius: 14px; padding: 14px 16px; cursor: pointer;
+  min-height: 64px;
+}
+.option[aria-pressed="true"] { border-color: var(--stern); background: color-mix(in srgb, var(--stern) 10%, transparent); }
+.option-name { font-size: 18px; font-weight: 650; }
+.option-text { grid-column: 1; font-size: 14px; color: var(--muted); }
+.option-ideal { grid-row: 1 / span 2; grid-column: 2; font-size: 15px; font-weight: 600; color: var(--stern); }
+.schliessen {
+  width: 100%; margin-top: 12px; font: inherit; font-size: 16px; color: var(--muted);
+  background: none; border: none; padding: 12px; cursor: pointer; min-height: 44px;
+}
+
+button:focus-visible, a:focus-visible { outline: 3px solid var(--stern); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { body { transition: none; } }

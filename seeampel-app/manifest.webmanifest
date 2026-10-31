@@ -1,0 +1,17 @@
+{
+  "name": "Seeampel – Schwimmen im Zürichsee",
+  "short_name": "Seeampel",
+  "description": "Lohnt es sich jetzt, im Zürichsee zu schwimmen – für mich?",
+  "lang": "de-CH",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F6F7",
+  "theme_color": "#1B6A87",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

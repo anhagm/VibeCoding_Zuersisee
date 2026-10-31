@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Seeampel – Schwimmen im Zürichsee</title>
+  <meta name="description" content="Lohnt es sich jetzt, im Zürichsee zu schwimmen – für mich?">
+  <meta name="theme-color" content="#1B6A87">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon-192.png" type="image/png">
+  <!-- iOS: Icon, Vollbild und Titel beim "Zum Home-Bildschirm" -->
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Seeampel">
+
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <header class="kopf">
+      <span class="marke">Seeampel</span>
+      <button class="profil-knopf" id="profilKnopf" type="button" aria-haspopup="dialog">
+        <span id="profilName">Profil wählen</span>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </header>
+
+    <!-- Inhalt wird von app.js gefüllt: Laden, Bewertung, Veto, Fehler -->
+    <section class="inhalt" id="inhalt">
+      <p class="laden">Lade Messung …</p>
+    </section>
+
+    <footer class="fuss">
+      <p id="stand" class="stand"></p>
+      <p class="quellen">
+        Messung: <a href="https://opendata.swiss/de/dataset/messwerte-der-wetterstationen-der-wasserschutzpolizei-zurich2" target="_blank" rel="noopener">Wasserschutzpolizei Zürich</a>
+        via <a href="https://tecdottir.metaodi.ch/" target="_blank" rel="noopener">Tecdottir</a> ·
+        Prognose: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
+        (MeteoSchweiz ICON-CH, CC BY 4.0)
+      </p>
+      <p class="hinweis">Keine offizielle Unwetterwarnung. Im Zweifel: nicht schwimmen.</p>
+    </footer>
+  </main>
+
+  <!-- Profilwahl: erscheint beim ersten Besuch und beim Tippen auf das Profil -->
+  <dialog class="auswahl" id="auswahl" aria-labelledby="auswahlTitel">
+    <form method="dialog">
+      <h2 id="auswahlTitel">Wie kalt magst du's?</h2>
+      <p class="auswahl-text">Die Bewertung richtet sich nach deinem Kälteempfinden.</p>
+      <div class="optionen" id="optionen"></div>
+      <button class="schliessen" id="schliessen" value="abbrechen" type="submit">Abbrechen</button>
+    </form>
+  </dialog>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
