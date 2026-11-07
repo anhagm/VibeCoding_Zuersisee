@@ -1,0 +1,237 @@
+/* Knöpfe */
+.knopf {
+  min-height: var(--ziel);
+  min-width: var(--ziel);
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--karte-rand);
+  background: var(--karte);
+  color: var(--text);
+  font-weight: 550;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.knopf:active { transform: scale(.98); }
+.knopf-primaer { background: var(--primaer); color: var(--auf-primaer); border-color: transparent; }
+.knopf-text { background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0 10px; color: var(--primaer); }
+.knopf-gefahr { color: var(--warnung); }
+.knopf:disabled { opacity: .4; cursor: default; }
+.knopf svg { width: 20px; height: 20px; flex: none; }
+.knopf-breit { width: 100%; }
+
+/* Karten */
+.karte {
+  background: var(--karte);
+  border: 1px solid var(--karte-rand);
+  border-radius: var(--radius);
+  padding: var(--abstand);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.karte-flach { padding: 12px var(--abstand); }
+
+/* Bewertung: der Fokus */
+.bewertung {
+  text-align: center;
+  padding: 28px var(--abstand) 24px;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+.bewertung-ort { font-size: var(--klein); color: var(--nebentext); }
+.sterne { display: flex; gap: 6px; justify-content: center; }
+.sterne svg { width: 52px; height: 52px; }
+.sterne-klein svg { width: 18px; height: 18px; }
+.sterne-klein { gap: 2px; }
+.stern-voll { fill: var(--primaer); }
+.stern-leer { fill: var(--stern-leer); }
+.satz { font-size: 1.1875rem; font-weight: 600; line-height: 1.3; max-width: 22em; text-wrap: balance; }
+.satz.prognose { color: var(--prognose); }
+.warnsymbol { width: 64px; height: 64px; color: var(--warnung); }
+.veto .satz { color: var(--warnung); }
+.veto-null { font-size: var(--klein); color: var(--nebentext); }
+
+.fehlerzustand { text-align: center; display: grid; gap: 12px; justify-items: center; padding: 28px var(--abstand); }
+.fehlerzustand svg { width: 40px; height: 40px; color: var(--nebentext); }
+
+.laden-text { color: var(--nebentext); padding: 40px 0; text-align: center; }
+
+/* Messwerte */
+.messwerte {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+}
+.messwert { display: grid; gap: 0; }
+.messwert-label { font-size: var(--sehr-klein); color: var(--nebentext); display: flex; align-items: center; gap: 5px; }
+.messwert-label svg { width: 14px; height: 14px; }
+.messwert-wert { font-size: 1.125rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.messwert-zusatz { font-size: var(--sehr-klein); color: var(--nebentext); }
+.messwert.prognose .messwert-wert,
+.messwert.prognose .messwert-label { color: var(--prognose); }
+
+/* Hinweise unter der Messkarte */
+.hinweise { display: grid; gap: 8px; }
+.hinweis { display: flex; gap: 10px; align-items: flex-start; font-size: var(--klein); line-height: 1.35; }
+.hinweis svg { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--nebentext); }
+.hinweis.prognose svg { color: var(--prognose); }
+.hinweis-knopf { all: unset; cursor: pointer; display: flex; gap: 10px; align-items: center; min-height: var(--ziel); color: var(--primaer); font-weight: 550; font-size: var(--klein); }
+.hinweis-knopf:focus-visible { outline: 3px solid var(--primaer); border-radius: 6px; }
+.hinweis-knopf svg { width: 18px; height: 18px; }
+
+.messzeit { font-size: var(--sehr-klein); color: var(--nebentext); text-align: center; }
+.messzeit .warnung { font-weight: 600; }
+
+/* Statistik */
+.statistik-kopf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 14px; }
+.kennzahl-wert { font-size: 1.125rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.kennzahl-label { font-size: var(--sehr-klein); color: var(--nebentext); }
+.diagramm svg { width: 100%; height: auto; display: block; overflow: visible; }
+.diagramm .balken { fill: var(--primaer); }
+.diagramm .balken-leer { fill: var(--stern-leer); }
+.diagramm .achse { fill: var(--nebentext); font-size: 10px; font-family: var(--schrift); }
+.diagramm .wert { fill: var(--text); font-size: 10px; font-weight: 600; font-family: var(--schrift); }
+.leer-zustand { display: grid; gap: 12px; justify-items: start; }
+
+/* Formular */
+.feld { display: grid; gap: 6px; }
+.feld-label { font-size: var(--klein); font-weight: 600; }
+.feld-hilfe { font-size: var(--sehr-klein); color: var(--nebentext); }
+.eingabe {
+  min-height: var(--ziel);
+  padding: 10px 14px;
+  border-radius: var(--radius-klein);
+  border: 1px solid var(--karte-rand);
+  background: var(--karte);
+  width: 100%;
+}
+textarea.eingabe { min-height: 88px; resize: vertical; }
+.eingabe:focus { outline: 3px solid var(--primaer); outline-offset: 0; }
+
+.segmente { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--karte); border: 1px solid var(--karte-rand); }
+.segmente label { position: relative; }
+.segmente input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.segmente span { display: flex; min-height: 40px; align-items: center; justify-content: center; border-radius: 999px; font-size: var(--klein); font-weight: 550; padding: 0 6px; text-align: center; }
+.segmente input:checked + span { background: var(--primaer); color: var(--auf-primaer); }
+.segmente input:focus-visible + span { outline: 3px solid var(--primaer); outline-offset: 2px; }
+
+.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.preset { min-height: 64px; border-radius: var(--radius-klein); border: 1px solid var(--karte-rand); background: var(--karte); display: grid; place-content: center; text-align: center; padding: 6px; gap: 2px; }
+.preset strong { font-weight: 600; }
+.preset span { font-size: var(--sehr-klein); color: var(--nebentext); }
+.preset[aria-pressed="true"] { border-color: var(--primaer); box-shadow: inset 0 0 0 1px var(--primaer); }
+
+.regler-kopf { display: flex; justify-content: space-between; align-items: baseline; }
+.regler-wert { font-size: 1.5rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 100%; height: var(--ziel); accent-color: var(--primaer); margin: 0; }
+.regler-skala { display: flex; justify-content: space-between; font-size: var(--sehr-klein); color: var(--nebentext); }
+
+.aktionen { display: flex; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.aktionen .knopf-primaer { flex: 1; max-width: 60%; }
+
+/* Kalender */
+.kalender-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.kalender-titel { font-weight: 600; text-transform: capitalize; }
+.kalender-raster { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.kalender-wt { font-size: var(--sehr-klein); color: var(--nebentext); padding: 4px 0; }
+.tag {
+  position: relative;
+  min-height: var(--ziel);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--klein);
+}
+.tag:disabled { color: var(--stern-leer); cursor: default; }
+.tag.heute { font-weight: 700; color: var(--primaer); }
+.tag.gewaehlt { background: var(--primaer); color: var(--auf-primaer); }
+.tag.hat-eintrag::after {
+  content: ""; position: absolute; left: 50%; bottom: 5px;
+  width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%;
+  background: currentColor; opacity: .8;
+}
+.tag.hat-eintrag:not(.gewaehlt)::after { background: var(--primaer); }
+
+/* Scroll-Rad */
+.zeitwahl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rad-gruppe { display: grid; gap: 6px; }
+.rad {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 132px;
+  border-radius: var(--radius-klein);
+  background: var(--karte);
+  border: 1px solid var(--karte-rand);
+  overflow: hidden;
+}
+.rad::before {
+  content: ""; position: absolute; left: 6px; right: 6px; top: 44px; height: 44px;
+  border-radius: 10px; background: var(--karte); border: 1px solid var(--karte-rand);
+  pointer-events: none;
+}
+.rad-trenner { font-weight: 650; z-index: 1; }
+.rad-spalte {
+  height: 132px;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  padding: 44px 0;
+  z-index: 1;
+  -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+.rad-spalte::-webkit-scrollbar { display: none; }
+.rad-spalte:focus-visible { outline: 3px solid var(--primaer); outline-offset: -3px; }
+.rad-wert {
+  height: 44px; display: flex; align-items: center; justify-content: center;
+  scroll-snap-align: center; font-size: 1.25rem; font-variant-numeric: tabular-nums;
+  color: var(--nebentext); user-select: none;
+}
+.rad-wert.aktiv { color: var(--text); font-weight: 650; }
+
+.zeichen-zaehler { text-align: right; font-size: var(--sehr-klein); color: var(--nebentext); }
+.zeichen-zaehler.voll { color: var(--warnung); }
+
+/* Einträge */
+.eintraege { display: grid; gap: 8px; }
+.eintrag { display: grid; gap: 4px; }
+.eintrag-titel { font-weight: 600; }
+.eintrag-meta { font-size: var(--sehr-klein); color: var(--nebentext); }
+.eintrag-kommentar { font-size: var(--klein); }
+.eintrag-aktionen { display: flex; gap: 0; margin: 0 -10px -8px; order: 3; }
+.eintrag.in-bearbeitung { outline: 2px solid var(--primaer); }
+
+/* Pop-up */
+.popup-schicht {
+  position: fixed; inset: 0; z-index: 50;
+  background: var(--abdunkeln);
+  display: grid; place-items: center;
+  padding: var(--abstand);
+  animation: einblenden 200ms ease-out;
+}
+.popup {
+  width: min(100%, 400px);
+  background: var(--popup);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  backdrop-filter: blur(18px) saturate(1.2);
+  border-radius: 22px;
+  padding: 22px 20px 16px;
+  display: grid; gap: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+  animation: hochgleiten 220ms ease-out;
+}
+.popup-text { line-height: 1.4; }
+.popup-aktionen { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+
+/* Ansichten */
+.ansicht-titel { display: flex; align-items: center; gap: 4px; margin: 4px 0 2px; }
+.abschnitt-titel { font-size: var(--klein); font-weight: 600; color: var(--nebentext); text-transform: none; margin: 8px 2px 0; }
