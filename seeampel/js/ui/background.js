@@ -1,7 +1,7 @@
 // Wasserszene im Hintergrund. Jede Ebene folgt einem Datenwert (siehe logic/scene.js).
 // Bei "Bewegung reduzieren", veralteten Daten oder Fehlern steht alles still; nur die Farbe bleibt.
 
-import { svg } from '../util/dom.js';
+import { starteFisch } from './fisch.js';
 
 let see = null;
 let gruende = [];
@@ -42,6 +42,7 @@ export function starteHintergrund(el) {
   see.append(...gruende, ebene('see-kaustik', KAUSTIK), strahlen, wellen, blasen, beschlag, ebene('see-blitz'));
 
   document.addEventListener('visibilitychange', () => see.classList.toggle('pausiert', document.hidden));
+  starteFisch();
 }
 
 // verlauf: { oben, mitte, unten }   szene: Ergebnis von szene()

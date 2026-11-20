@@ -13,6 +13,7 @@ import { sterneText } from '../util/format.js';
 import { bewertungKarte, messKarte, hinweise, badestellen, messzeit } from './rating-card.js';
 import { statistikKarte } from './stats-chart.js';
 import { setzeSzene } from './background.js';
+import { setzeFisch } from './fisch.js';
 
 export function bewertungFuer(ctx, station) {
   const d = ctx.stationen[station];
@@ -88,6 +89,9 @@ export function startAnsicht(ctx) {
   const ok = hier.status === 'ok';
   const veto = ok && Boolean(hier.ergebnis.veto);
   document.body.classList.toggle('veto', veto);
+  // Fischlein nur, wenn das Wasser einladend ist: frische Daten, kein Veto.
+  setzeFisch({ darf: ok && !veto && !hier.messung.veraltet, wasser: ok ? hier.messung.wasser : null });
+
   setzeSzene(
     seeVerlauf({
       wasser: ok ? hier.messung.wasser : null,

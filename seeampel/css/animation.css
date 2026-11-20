@@ -134,3 +134,21 @@
   #see.mit-beschlag .see-beschlag i { display: none; }
   *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }
+
+/* Fischlein (nur Desktop mit Maus, siehe js/ui/fisch.js) */
+.fisch {
+  position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none;
+  width: 44px; height: 22px;
+  color: #1B6A87;
+  opacity: 0;
+  transition: opacity .5s ease;
+  will-change: transform;
+}
+.fisch.sichtbar { opacity: .78; }
+.fisch svg { display: block; overflow: visible; fill: currentColor; }
+.fisch .fisch-flosse { opacity: .7; }
+.fisch .fisch-auge { fill: rgba(255, 255, 255, .9); }
+.fisch-schwanz { transform-origin: 40px 12px; animation: fisch-schwanz .7s ease-in-out infinite alternate; }
+.fisch.schnell .fisch-schwanz { animation-duration: .22s; }
+@keyframes fisch-schwanz { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+@media (prefers-color-scheme: dark) { .fisch { color: #6FC0DE; } .fisch.sichtbar { opacity: .6; } .fisch .fisch-auge { fill: #0B1A20; } }
