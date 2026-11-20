@@ -1,100 +1,69 @@
-// Ruhige Wasseranimation in der Seefarbe. Bei "Bewegung reduzieren" nur Farbe.
+// Wasserszene im Hintergrund. Jede Ebene folgt einem Datenwert (siehe logic/scene.js).
+// Bei "Bewegung reduzieren", veralteten Daten oder Fehlern steht alles still; nur die Farbe bleibt.
 
-import { hexZuRgb, rgbZuHex } from '../logic/sea-color.js';
+import { svg } from '../util/dom.js';
 
-let canvas, ctx, raf = null;
-let aktuell = null;
-let ziel = [195, 224, 232];
-let dunkel = false;
-let reduziert = false;
-let t0 = performance.now();
+let see = null;
+let gruende = [];
+let aktiverGrund = 0;
+let letzterVerlauf = '';
 
-const reduziertMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+const welle = (fuellung) => `<svg viewBox="0 0 720 70" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 0 H720 V34 C660 50 600 50 540 34 C480 18 420 18 360 34 C300 50 240 50 180 34 C120 18 60 18 0 34 Z" fill="${fuellung}"/></svg>`;
 
-export function starteHintergrund(el, { istDunkel }) {
-  canvas = el;
-  ctx = canvas.getContext('2d');
-  dunkel = istDunkel;
-  // Startfarbe aus CSS, damit der Dunkelmodus nicht von einer hellen Farbe her einblendet.
-  const css = getComputedStyle(document.documentElement).getPropertyValue('--see').trim();
-  if (/^#[0-9a-f]{6}$/i.test(css)) { ziel = hexZuRgb(css); aktuell = [...ziel]; }
-  reduziert = reduziertMq.matches;
-  reduziertMq.addEventListener('change', (e) => { reduziert = e.matches; neuStarten(); });
-  window.addEventListener('resize', groesse);
-  document.addEventListener('visibilitychange', neuStarten);
-  groesse();
-  neuStarten();
+const KAUSTIK = `<svg width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">
+  <filter id="see-kaustik-filter" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="7"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1 0 0 0 0"/>
+    <feComponentTransfer><feFuncA type="table" tableValues="0 0 0 0.15 1 0.15 0 0 0"/></feComponentTransfer>
+    <feGaussianBlur stdDeviation="0.8"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#see-kaustik-filter)"/></svg>`;
+
+function ebene(klasse, inhalt = '') {
+  const el = document.createElement('div');
+  el.className = klasse;
+  if (inhalt) el.innerHTML = inhalt;
+  return el;
 }
 
-export function setzeDunkel(wert) {
-  dunkel = wert;
-  aktuell = null;
-  zeichne(performance.now());
+export function starteHintergrund(el) {
+  see = el;
+  gruende = [ebene('see-grund aktiv'), ebene('see-grund')];
+  const wellen = ebene('see-wellen');
+  const band1 = ebene('see-welle see-welle-1', welle('rgba(255,255,255,0.30)') + welle('rgba(255,255,255,0.30)'));
+  const band2 = ebene('see-welle see-welle-2', welle('rgba(255,255,255,0.16)') + welle('rgba(255,255,255,0.16)'));
+  wellen.append(band1, band2);
+
+  const strahlen = ebene('see-strahlen', '<i></i><i></i><i></i>');
+  const blasen = ebene('see-blasen', '<i></i><i></i><i></i><i></i><i></i>');
+  const beschlag = ebene('see-beschlag', '<div class="see-nebel"></div><i></i><i></i><i></i><i></i><i></i>');
+
+  see.append(...gruende, ebene('see-kaustik', KAUSTIK), strahlen, wellen, blasen, beschlag, ebene('see-blitz'));
+
+  document.addEventListener('visibilitychange', () => see.classList.toggle('pausiert', document.hidden));
 }
 
-export function setzeSeefarbe(hex) {
-  ziel = hexZuRgb(hex);
-  if (!aktuell) aktuell = [...ziel];
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', hex);
-  document.body.style.background = hex;
-  if (reduziert) zeichne(performance.now());
-}
-
-function groesse() {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  canvas.width = Math.round(window.innerWidth * dpr);
-  canvas.height = Math.round(window.innerHeight * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  zeichne(performance.now());
-}
-
-function neuStarten() {
-  if (raf) cancelAnimationFrame(raf);
-  raf = null;
-  if (reduziert || document.hidden) {
-    if (aktuell) aktuell = [...ziel];
-    zeichne(performance.now(), true);
-    return;
+// verlauf: { oben, mitte, unten }   szene: Ergebnis von szene()
+export function setzeSzene(verlauf, szene) {
+  if (!see) return;
+  const schluessel = `${verlauf.oben}${verlauf.mitte}${verlauf.unten}`;
+  if (schluessel !== letzterVerlauf) {
+    letzterVerlauf = schluessel;
+    // Weiche Überblendung zwischen zwei Verläufen.
+    aktiverGrund = 1 - aktiverGrund;
+    const neu = gruende[aktiverGrund];
+    neu.style.background = `linear-gradient(180deg, ${verlauf.oben} 0%, ${verlauf.mitte} 40%, ${verlauf.unten} 100%)`;
+    neu.classList.add('aktiv');
+    gruende[1 - aktiverGrund].classList.remove('aktiv');
+    document.body.style.backgroundColor = verlauf.unten;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', verlauf.oben);
   }
-  const schleife = (t) => { zeichne(t); raf = requestAnimationFrame(schleife); };
-  raf = requestAnimationFrame(schleife);
-}
-
-const ton = (rgb, d) => rgbZuHex(rgb.map((v) => v + d));
-
-function zeichne(t, statisch = false) {
-  if (!ctx) return;
-  if (!aktuell) aktuell = [...ziel];
-  // Farbe gleitet weich zur Zielfarbe.
-  aktuell = aktuell.map((v, i) => v + (ziel[i] - v) * (statisch || reduziert ? 1 : 0.05));
-
-  const w = window.innerWidth;
-  const hgt = window.innerHeight;
-  ctx.fillStyle = rgbZuHex(aktuell);
-  ctx.fillRect(0, 0, w, hgt);
-  if (reduziert) return;
-
-  const s = (t - t0) / 1000;
-  const schichten = [
-    { y: 0.38, amp: 14, laenge: 420, tempo: 0.12, d: dunkel ? 3 : -4, alpha: 0.35 },
-    { y: 0.55, amp: 18, laenge: 560, tempo: -0.08, d: dunkel ? 5 : -6, alpha: 0.30 },
-    { y: 0.72, amp: 12, laenge: 360, tempo: 0.10, d: dunkel ? 7 : -8, alpha: 0.28 },
-  ];
-  for (const sch of schichten) {
-    ctx.beginPath();
-    const basis = hgt * sch.y;
-    ctx.moveTo(0, hgt);
-    for (let x = 0; x <= w + 8; x += 8) {
-      const y = basis +
-        Math.sin((x / sch.laenge) * Math.PI * 2 + s * sch.tempo * Math.PI * 2) * sch.amp +
-        Math.sin((x / (sch.laenge * 0.53)) * Math.PI * 2 - s * sch.tempo * 1.7) * sch.amp * 0.35;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(w, hgt);
-    ctx.closePath();
-    ctx.globalAlpha = sch.alpha;
-    ctx.fillStyle = ton(aktuell, sch.d);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-  }
+  see.style.setProperty('--kaustik', String(szene.kaustik));
+  see.style.setProperty('--strahlen', String(szene.strahlen));
+  see.style.setProperty('--blasen', String(szene.blasen));
+  see.style.setProperty('--welle-dauer', `${szene.welleSek}s`);
+  see.classList.toggle('mit-beschlag', szene.beschlag > 0);
+  see.classList.toggle('mit-blitz', Boolean(szene.blitz));
+  see.classList.toggle('still', Boolean(szene.still));
 }

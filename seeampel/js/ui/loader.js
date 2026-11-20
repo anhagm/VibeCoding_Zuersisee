@@ -4,11 +4,11 @@ import { LADEN } from '../config.js';
 
 const warte = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function einblendenNachLaden(datenPromise, render) {
+export async function einblendenNachLaden(datenPromise, render, { minMs, maxMs } = LADEN) {
   const start = performance.now();
-  await Promise.race([Promise.resolve(datenPromise).catch(() => {}), warte(LADEN.maxMs)]);
+  await Promise.race([Promise.resolve(datenPromise).catch(() => {}), warte(maxMs)]);
   const vergangen = performance.now() - start;
-  if (vergangen < LADEN.minMs) await warte(LADEN.minMs - vergangen);
+  if (vergangen < minMs) await warte(minMs - vergangen);
   render();
   requestAnimationFrame(() => document.getElementById('app').classList.add('sichtbar'));
 }

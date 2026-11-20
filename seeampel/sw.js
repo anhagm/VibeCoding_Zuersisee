@@ -1,6 +1,6 @@
 // Service Worker. Nach jeder Änderung an App-Dateien VERSION erhöhen,
 // sonst sehen installierte Apps die alte Version.
-const VERSION = 'seeampel-v4';
+const VERSION = 'seeampel-v5';
 const DATEN = 'seeampel-daten';
 
 const SHELL = [
@@ -15,6 +15,8 @@ const SHELL = [
   "/css/components.css",
   "/css/layout.css",
   "/css/tokens.css",
+  "/fonts/fraunces.woff2",
+  "/fonts/manrope.woff2",
   "/js/app.js",
   "/js/config.js",
   "/js/data/forecast.js",
@@ -24,6 +26,7 @@ const SHELL = [
   "/js/logic/compare.js",
   "/js/logic/diary-validation.js",
   "/js/logic/rating.js",
+  "/js/logic/scene.js",
   "/js/logic/sea-color.js",
   "/js/logic/tips.js",
   "/js/storage/diary-db.js",
@@ -33,6 +36,7 @@ const SHELL = [
   "/js/ui/calendar.js",
   "/js/ui/diary-view.js",
   "/js/ui/home-view.js",
+  "/js/ui/intro.js",
   "/js/ui/loader.js",
   "/js/ui/modal.js",
   "/js/ui/profile-view.js",

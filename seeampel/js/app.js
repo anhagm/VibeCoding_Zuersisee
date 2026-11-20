@@ -1,14 +1,15 @@
 // Einstieg: Zustand, Datenquellen, Routing und Ladesequenz.
 
-import { STATIONEN } from './config.js';
-import { h, leeren } from './util/dom.js';
+import { STATIONEN, PRESETS, LADEN } from './config.js';
+import { h, leeren, ICON } from './util/dom.js';
 import { lokalIso, datumTeil } from './util/zeit.js';
 import { ladeMessung, normalisiereMessung, ladeHistorischeMessung } from './data/measurement.js';
 import { ladePrognose, normalisierePrognose } from './data/forecast.js';
 import { szenario, testMessungJson, testPrognoseJson, testTagebuch } from './data/scenarios.js';
 import { ladeProfil, speichereProfil, nutzeFluechtigenSpeicher } from './storage/profile.js';
 import { alleEintraege, nutzeDatenbank, leeren as tagebuchLeeren, speichereViele } from './storage/diary-db.js';
-import { starteHintergrund, setzeDunkel } from './ui/background.js';
+import { starteHintergrund } from './ui/background.js';
+import { zeigeIntro } from './ui/intro.js';
 import { einblendenNachLaden } from './ui/loader.js';
 import { startAnsicht } from './ui/home-view.js';
 import { profilAnsicht } from './ui/profile-view.js';
@@ -113,14 +114,26 @@ function route() {
   return ['tagebuch', 'profil'].includes(r) ? r : 'start';
 }
 
+// Name des Schwimmtyps im Profilknopf, wenn das Profil genau einem Typ entspricht.
+function profilName() {
+  const p = ctx.profil;
+  const typ = Object.values(PRESETS).find((t) => t.lieblingstemperatur === p.lieblingstemperatur && t.toleranz === p.toleranz);
+  return typ ? typ.name : 'Profil';
+}
+
 function kopf(r) {
   const titel = h('div', { class: 'kopf-titel' },
-    h('h1', { text: 'Seeampel' }),
-    ctx.profil ? h('span', { class: 'sehr-klein nebentext', text: `Zürichsee · ${STATIONEN[ctx.ansichtStation].name}` }) : null);
+    h('span', { class: 'wortmarke', text: 'Seeampel' }),
+    ctx.profil ? h('span', { class: 'kopf-ort', text: STATIONEN[ctx.ansichtStation].name }) : null);
+  const name = ctx.profil ? profilName() : '';
   const aktionen = ctx.profil
     ? h('nav', { class: 'kopf-aktionen', 'aria-label': 'Navigation' },
       r !== 'tagebuch' ? h('button', { class: 'knopf knopf-text', type: 'button', text: 'Tagebuch', onclick: () => ctx.navigiere('#tagebuch') }) : null,
-      h('button', { class: 'knopf', type: 'button', text: 'Profil', 'aria-current': r === 'profil' ? 'page' : null, onclick: () => ctx.navigiere('#profil') }))
+      h('button', {
+        class: 'knopf', type: 'button', 'aria-current': r === 'profil' ? 'page' : null,
+        'aria-label': name === 'Profil' ? 'Profil bearbeiten' : `Profil: ${name}, bearbeiten`,
+        onclick: () => ctx.navigiere('#profil'),
+      }, name, ICON.runter()))
     : null;
   return h('header', { class: 'kopf' }, titel, aktionen);
 }
@@ -145,6 +158,7 @@ function render() {
   else if (r === 'tagebuch') inhalt = tagebuchAnsicht(ctx);
   else inhalt = startAnsicht(ctx);
 
+  document.body.dataset.route = r;
   leeren(app);
   app.append(kopf(r), h('main', { id: 'inhalt' }, inhalt), fuss());
   if (wechsel) window.scrollTo({ top: 0 });
@@ -161,15 +175,20 @@ async function start() {
     }
   }
 
-  starteHintergrund(document.getElementById('hintergrund'), { istDunkel: ctx.dunkel });
+  starteHintergrund(document.getElementById('see'));
   ctx.profil = ladeProfil();
   if (ctx.profil) ctx.ansichtStation = ctx.profil.station;
 
+  // Erster Start: einmal eintauchen (2,5 s). Danach nur so lange, wie die Daten laden.
+  const reduziert = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const intro = !ctx.profil && !reduziert;
+  if (intro) zeigeIntro();
+
   const daten = Promise.all([ladeStationen(), ladeEintraege()]);
-  await einblendenNachLaden(daten, render);
+  await einblendenNachLaden(daten, render, intro ? { minMs: 2000, maxMs: 2000 } : LADEN);
 
   window.addEventListener('hashchange', render);
-  dunkelMq.addEventListener('change', (e) => { ctx.dunkel = e.matches; setzeDunkel(e.matches); render(); });
+  dunkelMq.addEventListener('change', (e) => { ctx.dunkel = e.matches; render(); });
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && Date.now() - ctx.geladenUm > 10 * 60000) ladeStationen();
   });

@@ -1,11 +1,136 @@
+/* Wasserszene. Jede Ebene ist an einen Datenwert gebunden (js/logic/scene.js). */
+#see {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  --kaustik: 0;
+  --strahlen: 0;
+  --blasen: 0;
+  --welle-dauer: 18s;
+}
+
+.see-grund {
+  position: absolute;
+  inset: 0;
+  background: var(--see);
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+}
+.see-grund.aktiv { opacity: 1; }
+
+/* Sonne: Lichtnetze am Grund */
+.see-kaustik {
+  position: absolute;
+  inset: -80px;
+  opacity: var(--kaustik);
+  mix-blend-mode: soft-light;
+  transition: opacity 1.5s ease-in-out;
+  animation: see-drift 22s ease-in-out infinite;
+  will-change: transform;
+}
+.see-kaustik svg { display: block; width: 100%; height: 100%; }
+
+/* Sonne: Lichtstrahlen von oben */
+.see-strahlen { position: absolute; inset: 0 0 30% 0; opacity: var(--strahlen); transition: opacity 1.5s ease-in-out; }
+.see-strahlen i {
+  position: absolute; top: -60px; height: 90%;
+  background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0));
+  filter: blur(12px);
+  animation: see-strahl 11s ease-in-out infinite;
+}
+.see-strahlen i:nth-child(1) { left: 10%; width: 18vw; max-width: 120px; transform: rotate(15deg); }
+.see-strahlen i:nth-child(2) { left: 42%; width: 12vw; max-width: 80px; transform: rotate(11deg); animation-delay: -4s; animation-duration: 13s; }
+.see-strahlen i:nth-child(3) { left: 72%; width: 20vw; max-width: 140px; transform: rotate(8deg); animation-delay: -8s; animation-duration: 15s; }
+
+/* Wind: Tempo der Wellen an der Oberfläche */
+.see-wellen { position: absolute; left: 0; right: 0; top: 0; height: 70px; overflow: hidden; }
+.see-welle { position: absolute; top: 0; left: 0; width: 200%; height: 70px; display: flex; animation: see-welle var(--welle-dauer) linear infinite; }
+.see-welle svg { width: 50%; height: 100%; display: block; }
+.see-welle-2 { top: 6px; animation-direction: reverse; animation-duration: calc(var(--welle-dauer) * 1.5); }
+
+/* Blasen */
+.see-blasen { position: absolute; inset: 0; opacity: var(--blasen); transition: opacity 1.5s; }
+.see-blasen i {
+  position: absolute; bottom: -20px; width: 8px; height: 8px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.7);
+  animation: see-blase 13s linear infinite;
+}
+.see-blasen i:nth-child(1) { left: 9%; }
+.see-blasen i:nth-child(2) { left: 24%; width: 5px; height: 5px; animation-duration: 10s; animation-delay: -3s; }
+.see-blasen i:nth-child(3) { left: 55%; width: 4px; height: 4px; animation-duration: 12s; animation-delay: -8s; }
+.see-blasen i:nth-child(4) { left: 81%; width: 10px; height: 10px; animation-duration: 15s; animation-delay: -1s; }
+.see-blasen i:nth-child(5) { left: 92%; width: 6px; height: 6px; animation-duration: 11s; animation-delay: -6s; }
+
+/* Kälte: beschlagener Rand und Tropfen */
+.see-beschlag { position: absolute; inset: 0; display: none; }
+#see.mit-beschlag .see-beschlag { display: block; animation: see-ein 1.5s ease-out both; }
+.see-nebel {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,.28);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 42%, transparent 55%, #000 100%);
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 42%, transparent 55%, #000 100%);
+}
+.see-beschlag i {
+  position: absolute; width: 9px; height: 12px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 42% 42%;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), rgba(255,255,255,.25) 55%, rgba(255,255,255,0) 72%);
+  box-shadow: 0 1px 1px rgba(0,0,0,.08);
+  animation: see-tropfen 16s ease-in infinite;
+}
+.see-beschlag i:nth-child(2) { left: 2.5%; top: 12%; }
+.see-beschlag i:nth-child(3) { left: 5%; top: 46%; width: 7px; height: 9px; animation-duration: 19s; animation-delay: -5s; }
+.see-beschlag i:nth-child(4) { right: 3%; top: 26%; width: 10px; height: 13px; animation-delay: -2s; }
+.see-beschlag i:nth-child(5) { right: 6%; top: 64%; width: 6px; height: 8px; animation-duration: 21s; animation-delay: -9s; }
+.see-beschlag i:nth-child(6) { left: 3.5%; top: 76%; width: 8px; height: 10px; animation-duration: 17s; animation-delay: -3s; }
+
+/* Veto: Wetterleuchten */
+.see-blitz { position: absolute; inset: 0; background: #fff; opacity: 0; display: none; }
+#see.mit-blitz .see-blitz { display: block; animation: see-blitz 9s linear infinite; }
+
+/* Unsicher oder Fehler: alles steht */
+#see.still .see-kaustik, #see.still .see-welle, #see.still .see-strahlen i,
+#see.still .see-blasen i, #see.still .see-beschlag i,
+#see.pausiert * { animation-play-state: paused; }
+#see.still .see-blasen, #see.still .see-strahlen { opacity: 0; }
+
+@keyframes see-drift { 0%, 100% { transform: translate(0, 0) scale(1.05); } 50% { transform: translate(-30px, 18px) scale(1.12); } }
+@keyframes see-strahl { 0%, 100% { opacity: .3; } 50% { opacity: .75; } }
+@keyframes see-welle { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes see-blase { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: .8; } 100% { transform: translateY(-110vh); opacity: 0; } }
+@keyframes see-tropfen { 0% { transform: translateY(0); } 70% { transform: translateY(18vh); } 100% { transform: translateY(21vh); opacity: 0; } }
+@keyframes see-blitz { 0%, 91%, 95%, 100% { opacity: 0; } 92% { opacity: .3; } 93% { opacity: .05; } 94% { opacity: .18; } }
+@keyframes see-ein { from { opacity: 0; } to { opacity: 1; } }
 @keyframes einblenden { from { opacity: 0; } to { opacity: 1; } }
 @keyframes hochgleiten { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
 
+/* Intro beim ersten Start: eintauchen (2,5 s) */
+.intro { position: fixed; inset: 0; z-index: 40; overflow: hidden; pointer-events: none; animation: intro-aus .5s ease-in 2.3s both; }
+.intro-tauchen { position: absolute; left: 0; top: 0; width: 100%; height: 200%; animation: intro-tauchen 2.5s cubic-bezier(.65,0,.35,1) both; }
+.intro-himmel { position: absolute; left: 0; right: 0; top: 0; height: 30%; background: linear-gradient(180deg, #F6FBFC 0%, #E3F2F4 100%); }
+.intro-wasser { position: absolute; left: 0; right: 0; top: 29%; bottom: 0; background: linear-gradient(180deg, #CDEBE6 0%, #BEE4E0 30%, #9AD3CE 100%); }
+.intro-oberflaeche { position: absolute; left: 0; top: calc(29% - 22px); width: 200%; height: 50px; display: flex; animation: see-welle 3s linear infinite; }
+.intro-oberflaeche svg { width: 50%; height: 100%; }
+.intro-marke { position: absolute; left: 0; right: 0; top: 36%; text-align: center; color: #12242B; animation: intro-marke 2.5s ease-out both; }
+.intro-marke strong { display: block; font-family: var(--stimme); font-variation-settings: 'SOFT' 100, 'opsz' 96; font-size: 46px; font-weight: 600; letter-spacing: -.02em; }
+.intro-marke span { font-size: 14px; color: #33474E; }
+.intro-tauchen i { position: absolute; top: 38%; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.85); animation: intro-blase 2.6s ease-out both; }
+.intro-tauchen i:nth-child(4) { left: 18%; }
+.intro-tauchen i:nth-child(5) { left: 34%; width: 6px; height: 6px; animation-delay: .1s; }
+.intro-tauchen i:nth-child(6) { left: 49%; width: 14px; height: 14px; animation-delay: .05s; }
+.intro-tauchen i:nth-child(7) { left: 64%; width: 8px; height: 8px; animation-delay: .15s; }
+.intro-tauchen i:nth-child(8) { left: 80%; width: 11px; height: 11px; animation-delay: .2s; }
+
+@keyframes intro-tauchen { 0%, 32% { transform: translateY(0); } 76%, 100% { transform: translateY(-50%); } }
+@keyframes intro-marke { 0% { opacity: 0; transform: translateY(10px); } 14%, 30% { opacity: 1; transform: none; } 48%, 100% { opacity: 0; transform: translateY(-30px); } }
+@keyframes intro-blase { 0%, 36% { transform: translateY(0); opacity: 0; } 44% { opacity: .9; } 100% { transform: translateY(-90vh); opacity: 0; } }
+@keyframes intro-aus { to { opacity: 0; } }
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
-    scroll-behavior: auto !important;
-  }
+  #see *, .intro, .intro * { animation: none !important; transition: none !important; }
+  #see.mit-beschlag .see-beschlag i { display: none; }
+  *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }

@@ -1,29 +1,55 @@
+/* Schriften lokal eingebunden (SIL Open Font License, siehe fonts/). Kein Aufruf an Google. */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/fraunces.woff2') format('woff2-variations'), url('/fonts/fraunces.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/manrope.woff2') format('woff2-variations'), url('/fonts/manrope.woff2') format('woff2');
+}
+
 /* Farben und Masse. Hell als Standard, dunkel über die Systemeinstellung. */
 :root {
   color-scheme: light dark;
 
   --text: #12242B;
-  --nebentext: #5E7178;
-  --primaer: #1B6A87;
+  --nebentext: #55686F;
+  --auf-see: #33474E;           /* Nebentext direkt auf dem See, ohne Karte */
+  --primaer: #1B6A87;           /* Seeblau: Sterne, Aktionen */
   --stern-leer: #B9C7CC;
-  --prognose: #6A5B8C;
-  --warnung: #A5561C;
-  --karte: rgba(255, 255, 255, .55);
-  --karte-rand: rgba(18, 36, 43, .12);
+  --prognose: #6A5B8C;          /* Dämmerlila: alles aus der Prognose */
+  --prognose-blass: #DAD4E8;
+  --warnung: #B8430B;           /* Bojen-Orange */
+  --karte: rgba(255, 255, 255, .78);
+  --karte-leicht: rgba(255, 255, 255, .45);
+  --karte-rand: rgba(18, 36, 43, .10);
   --abdunkeln: rgba(18, 36, 43, .45);
   --popup: rgba(255, 255, 255, .85);
   --auf-primaer: #FFFFFF;
   --see: #CBDDEB;
 
-  --schrift: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Text auf dem See; beim Veto überschrieben (siehe unten) */
+  --held-text: var(--text);
+  --held-neben: var(--auf-see);
+  --held-link: var(--primaer);
+  --held-warn: var(--warnung);
+
+  --schrift: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --stimme: 'Fraunces', Georgia, 'Times New Roman', serif;
   --gross: clamp(1.25rem, 5vw, 1.5rem);
   --normal: 1rem;
   --klein: .875rem;
   --sehr-klein: .75rem;
 
   --abstand: 16px;
-  --radius: 18px;
-  --radius-klein: 12px;
+  --radius: 20px;
+  --radius-klein: 14px;
   --ziel: 44px;
   --breite: 480px;
 }
@@ -31,16 +57,27 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --text: #E8F0F2;
-    --nebentext: #8FA3AA;
+    --nebentext: #9DB0B7;
+    --auf-see: #B9C8CE;
     --primaer: #6FC0DE;
     --stern-leer: #34454B;
     --prognose: #B3A6D6;
-    --warnung: #E3A46E;
-    --karte: rgba(0, 0, 0, .25);
-    --karte-rand: rgba(232, 240, 242, .12);
+    --prognose-blass: #3D3652;
+    --warnung: #FF9A6B;
+    --karte: rgba(8, 18, 22, .62);
+    --karte-leicht: rgba(8, 18, 22, .35);
+    --karte-rand: rgba(232, 240, 242, .10);
     --abdunkeln: rgba(0, 0, 0, .55);
-    --popup: rgba(20, 32, 38, .85);
-    --auf-primaer: #0E1B20;
+    --popup: rgba(20, 32, 38, .88);
+    --auf-primaer: #0B1A20;
     --see: #162632;
   }
+}
+
+/* Veto: dunkles Gewitterwasser, in hell und dunkel. Nur die Warnung leuchtet. */
+body.veto {
+  --held-text: #F1F5F7;
+  --held-neben: #C9D3D8;
+  --held-link: #9FD8EC;
+  --held-warn: #FFB08A;
 }

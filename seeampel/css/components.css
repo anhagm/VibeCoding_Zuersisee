@@ -7,7 +7,7 @@
   border: 1px solid var(--karte-rand);
   background: var(--karte);
   color: var(--text);
-  font-weight: 550;
+  font-weight: 650;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -29,66 +29,92 @@
   border: 1px solid var(--karte-rand);
   border-radius: var(--radius);
   padding: var(--abstand);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 .karte-flach { padding: 12px var(--abstand); }
 
-/* Bewertung: der Fokus */
-.bewertung {
-  text-align: center;
-  padding: 28px var(--abstand) 24px;
-  display: grid;
-  gap: 14px;
-  justify-items: center;
-}
-.bewertung-ort { font-size: var(--klein); color: var(--nebentext); }
-.sterne { display: flex; gap: 6px; justify-content: center; }
-.sterne svg { width: 52px; height: 52px; }
+/* Bewertung: der Fokus, frei auf dem Wasser */
+.bewertung { padding: 30px 0 18px; display: grid; gap: 14px; justify-items: start; color: var(--held-text); }
+.bewertung-ort { font-size: .8125rem; font-weight: 600; letter-spacing: .02em; color: var(--held-neben); }
+.sterne { display: flex; gap: 6px; }
+.sterne svg { width: 50px; height: 50px; }
 .sterne-klein svg { width: 18px; height: 18px; }
 .sterne-klein { gap: 2px; }
 .stern-voll { fill: var(--primaer); }
 .stern-leer { fill: var(--stern-leer); }
-.satz { font-size: 1.1875rem; font-weight: 600; line-height: 1.3; max-width: 22em; text-wrap: balance; }
+.satz {
+  font-family: var(--stimme);
+  font-variation-settings: 'SOFT' 100, 'opsz' 72;
+  font-size: 1.9375rem;
+  line-height: 1.12;
+  font-weight: 520;
+  letter-spacing: -.015em;
+  max-width: 14em;
+  text-wrap: balance;
+  color: var(--held-text);
+}
 .satz.prognose { color: var(--prognose); }
-.warnsymbol { width: 64px; height: 64px; color: var(--warnung); }
-.veto .satz { color: var(--warnung); }
-.veto-null { font-size: var(--klein); color: var(--nebentext); }
+.veto-kopf { display: flex; align-items: center; gap: 12px; }
+.warnsymbol { width: 52px; height: 52px; color: var(--held-warn); }
+.veto .satz { color: var(--held-warn); }
+.veto-null { font-size: var(--klein); font-weight: 600; color: var(--held-neben); }
+.laden-text { color: var(--held-neben); padding: 48px 0; }
 
-.fehlerzustand { text-align: center; display: grid; gap: 12px; justify-items: center; padding: 28px var(--abstand); }
-.fehlerzustand svg { width: 40px; height: 40px; color: var(--nebentext); }
+.fehlerzustand { display: grid; gap: 12px; justify-items: start; padding: 22px var(--abstand); }
+.fehlerzustand svg { width: 36px; height: 36px; color: var(--nebentext); }
+.fehlerzustand h2 { font-family: var(--stimme); font-variation-settings: 'SOFT' 100; font-size: 1.5rem; font-weight: 600; }
 
-.laden-text { color: var(--nebentext); padding: 40px 0; text-align: center; }
+@media (min-width: 1024px) {
+  .bewertung { padding-top: 48px; gap: 20px; }
+  .sterne svg { width: 64px; height: 64px; }
+  .sterne { gap: 10px; }
+  .satz { font-size: clamp(2.5rem, 3.6vw, 3.25rem); line-height: 1.06; letter-spacing: -.02em; }
+}
 
 /* Messwerte */
-.messwerte {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px 16px;
-}
-.messwert { display: grid; gap: 0; }
+.etikett { font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--nebentext); }
+.etikett.prognose { color: var(--prognose); }
+.messkarte { display: grid; gap: 12px; }
+.messwerte { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.messwert { display: grid; gap: 2px; align-content: start; }
 .messwert-label { font-size: var(--sehr-klein); color: var(--nebentext); display: flex; align-items: center; gap: 5px; }
 .messwert-label svg { width: 14px; height: 14px; }
-.messwert-wert { font-size: 1.125rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.messwert-wert { font-size: 1.375rem; font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1.2; }
 .messwert-zusatz { font-size: var(--sehr-klein); color: var(--nebentext); }
-.messwert.prognose .messwert-wert,
-.messwert.prognose .messwert-label { color: var(--prognose); }
+.prognose-zeile { border-top: 1px solid var(--karte-rand); padding-top: 10px; display: grid; gap: 2px; color: var(--prognose); font-size: var(--klein); }
 
 /* Hinweise unter der Messkarte */
-.hinweise { display: grid; gap: 8px; }
+.hinweise { display: grid; gap: 10px; }
 .hinweis { display: flex; gap: 10px; align-items: flex-start; font-size: var(--klein); line-height: 1.35; }
 .hinweis svg { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--nebentext); }
+.hinweis.prognose { color: var(--prognose); }
 .hinweis.prognose svg { color: var(--prognose); }
-.hinweis-knopf { all: unset; cursor: pointer; display: flex; gap: 10px; align-items: center; min-height: var(--ziel); color: var(--primaer); font-weight: 550; font-size: var(--klein); }
+.hinweis-knopf { all: unset; cursor: pointer; display: flex; gap: 10px; align-items: center; min-height: var(--ziel); color: var(--primaer); font-weight: 650; font-size: var(--klein); }
 .hinweis-knopf:focus-visible { outline: 3px solid var(--primaer); border-radius: 6px; }
 .hinweis-knopf svg { width: 18px; height: 18px; }
 
-.messzeit { font-size: var(--sehr-klein); color: var(--nebentext); text-align: center; }
-.messzeit .warnung { font-weight: 600; }
+.stundenstreifen { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 5px; align-items: end; height: 56px; }
+.stundenstreifen span { border-radius: 5px; background: var(--prognose-blass); min-height: 3px; }
+.stundenstreifen span.beste { background: var(--prognose); }
+.stundenachse { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 5px; font-size: .6875rem; color: var(--nebentext); text-align: center; font-variant-numeric: tabular-nums; margin-top: -4px; }
+.stundenachse .beste { color: var(--prognose); font-weight: 700; }
+
+/* Badestellen, nur am Desktop */
+.orte { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ort { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 2px; padding: 16px 18px; border-radius: var(--radius); background: var(--karte); border: 1px solid var(--karte-rand); }
+.ort.aktiv { border: 2px solid var(--primaer); cursor: default; }
+.ort:focus-visible { outline: 3px solid var(--primaer); outline-offset: 2px; }
+.ort-name { font-weight: 700; }
+.ort-info { font-size: var(--sehr-klein); color: var(--nebentext); }
+.ort-sterne { font-size: 1.25rem; font-weight: 750; color: var(--primaer); }
+
+.messzeit { font-size: var(--sehr-klein); color: var(--held-neben); }
+.messzeit .warnung { font-weight: 700; color: var(--held-warn); }
 
 /* Statistik */
 .statistik-kopf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 14px; }
-.kennzahl-wert { font-size: 1.125rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.kennzahl-wert { font-size: 1.25rem; font-weight: 750; font-variant-numeric: tabular-nums; }
 .kennzahl-label { font-size: var(--sehr-klein); color: var(--nebentext); }
 .diagramm svg { width: 100%; height: auto; display: block; overflow: visible; }
 .diagramm .balken { fill: var(--primaer); }
@@ -245,7 +271,7 @@ input[type="range"] { width: 100%; height: var(--ziel); accent-color: var(--prim
 .karten-kopf:focus-visible { outline: 3px solid var(--primaer); outline-offset: 2px; border-radius: 8px; }
 .karten-kopf > span { display: grid; }
 .karten-kopf svg { width: 22px; height: 22px; color: var(--primaer); }
-.karten-titel { font-size: 1.0625rem; font-weight: 650; }
+.karten-titel { font-family: var(--stimme); font-variation-settings: 'SOFT' 100, 'opsz' 36; font-size: 1.3125rem; font-weight: 600; }
 .karten-untertitel { font-size: var(--sehr-klein); color: var(--nebentext); }
 .tagebuch-karte .statistik-kopf { margin-top: 6px; }
 .tagebuch-karte .knopf-breit { margin-top: 10px; }
@@ -258,7 +284,7 @@ input[type="range"] { width: 100%; height: var(--ziel); accent-color: var(--prim
 }
 .typ[aria-pressed="true"] { border-color: var(--primaer); box-shadow: inset 0 0 0 1px var(--primaer); }
 .typ-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.typ-name { font-weight: 650; font-size: 1.0625rem; }
+.typ-name { font-family: var(--stimme); font-variation-settings: 'SOFT' 100, 'opsz' 30; font-weight: 600; font-size: 1.1875rem; }
 .typ-ideal { font-size: var(--klein); font-weight: 600; color: var(--primaer); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .typ-text { font-size: var(--klein); color: var(--nebentext); line-height: 1.35; }
 .skala { position: relative; height: 8px; border-radius: 999px; background: var(--stern-leer); }
@@ -266,3 +292,14 @@ input[type="range"] { width: 100%; height: var(--ziel); accent-color: var(--prim
 .skala-gut { background: color-mix(in srgb, var(--primaer) 40%, transparent); }
 .skala-ideal { background: var(--primaer); }
 .skala-legende { display: flex; justify-content: space-between; font-size: var(--sehr-klein); color: var(--nebentext); margin-top: -4px; }
+
+.knopf svg.pfeil-klein { width: 14px; height: 14px; }
+.knopf-breit { min-height: 50px; font-size: 1rem; }
+
+/* Texte direkt auf dem See (ausserhalb von Karten) folgen der Szene, auch beim Veto */
+h1 { color: var(--held-text); }
+main > .stapel > .nebentext,
+.abschnitt-titel,
+section.stapel > .nebentext { color: var(--held-neben); }
+.ansicht-titel .knopf-text { color: var(--held-link); }
+.diagramm svg { max-height: 170px; }

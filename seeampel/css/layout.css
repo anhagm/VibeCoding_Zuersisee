@@ -1,21 +1,10 @@
-#hintergrund {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  display: block;
-  background: var(--see);
-  transition: background-color 1.2s ease-in-out;
-}
-
 #app {
   position: relative;
   z-index: 1;
   max-width: var(--breite);
   margin: 0 auto;
   min-height: 100dvh;
-  padding: calc(env(safe-area-inset-top) + 8px) var(--abstand) calc(env(safe-area-inset-bottom) + var(--abstand));
+  padding: calc(env(safe-area-inset-top) + 8px) 20px calc(env(safe-area-inset-bottom) + var(--abstand));
   display: flex;
   flex-direction: column;
   opacity: 0;
@@ -31,19 +20,27 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 56px;
+  min-height: 60px;
 }
 
-.kopf-titel { display: flex; flex-direction: column; }
-.kopf-titel .sehr-klein { margin-top: -2px; }
-
-.kopf-aktionen { display: flex; gap: 4px; }
+.kopf-titel { display: flex; flex-direction: column; color: var(--held-text); }
+.wortmarke {
+  font-family: var(--stimme);
+  font-variation-settings: 'SOFT' 100, 'opsz' 40;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.1;
+}
+.kopf-ort { font-size: var(--sehr-klein); color: var(--held-neben); white-space: nowrap; }
+.kopf-aktionen { display: flex; gap: 4px; align-items: center; }
+.kopf-aktionen .knopf-text { color: var(--held-link); }
 
 main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   padding-top: 4px;
 }
 
@@ -51,14 +48,36 @@ main {
   margin-top: 28px;
   padding-top: 12px;
   border-top: 1px solid var(--karte-rand);
-  color: var(--nebentext);
+  color: var(--held-neben);
   font-size: var(--sehr-klein);
   display: grid;
   gap: 4px;
 }
+.fuss strong { color: var(--held-text); font-weight: 700; }
+.fuss .warnung { color: var(--held-warn); }
 
-.fuss strong { color: var(--text); font-weight: 600; }
+/* Startseite: mobil eine Spalte in fester Reihenfolge, ab 1024 px zwei Spalten. */
+.start { display: flex; flex-direction: column; gap: 16px; }
+.start-links, .start-rechts { display: contents; }
+.start .bereich-held { order: 1; }
+.start .bereich-mess { order: 2; }
+.start .bereich-hinweise { order: 3; }
+.start .bereich-orte { order: 4; }
+.start .bereich-tagebuch { order: 5; }
+.start .bereich-zeit { order: 6; }
+.nur-breit { display: none; }
+
+@media (min-width: 1024px) {
+  body[data-route="start"] #app { max-width: none; width: 80vw; padding-left: 0; padding-right: 0; }
+  body[data-route="start"] .kopf { min-height: 84px; }
+  body[data-route="start"] .wortmarke { font-size: 1.875rem; }
+  .start { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 56px; align-items: start; }
+  .start-links, .start-rechts { display: flex; flex-direction: column; gap: 20px; }
+  .start-links { position: sticky; top: 24px; }
+  .nur-breit { display: grid; }
+  body:not([data-route="start"]) #app { max-width: 560px; }
+}
 
 .stapel { display: grid; gap: 12px; }
-.zeile { display: flex; gap: 8px; align-items: center; }
+.zeile { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .zeile.verteilt { justify-content: space-between; }

@@ -39,6 +39,8 @@ export const ICON = {
   offline: () => svg(strich('<path d="M3 3l18 18"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.7"/><path d="M19 12.9a10 10 0 0 0-2.3-1.6"/><path d="M12 20h.01"/>')),
   links: () => svg(strich('<path d="M15 6l-6 6 6 6"/>')),
   rechts: () => svg(strich('<path d="M9 6l6 6-6 6"/>')),
+  runter: () => svg(strich('<path d="M6 9l6 6 6-6"/>', 'class="pfeil-klein"')),
+  plus: () => svg(strich('<path d="M12 5v14"/><path d="M5 12h14"/>')),
 };
 
 const STERN_PFAD = 'M12 2.6l2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.3l-5.9 3.2 1.3-6.5L2.5 9.4l6.6-.8z';

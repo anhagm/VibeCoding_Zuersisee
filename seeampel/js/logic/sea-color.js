@@ -40,3 +40,18 @@ export function seeFarbe({ wasser = null, bewoelkung = null, veraltet = false, v
   if (veraltet || wasser === null) grau = Math.max(grau, 0.7);
   return rgbZuHex(mischen(hexZuRgb(farbeFuerWasser(wasser ?? 17, dunkel)), hexZuRgb(GRAU[modus]), grau));
 }
+
+// Verlauf für die Wasserszene: oben heller (Oberfläche), unten tiefer.
+const GEWITTER = {
+  hell: { oben: '#56636D', mitte: '#2F3A43', unten: '#192127' },
+  dunkel: { oben: '#3A4650', mitte: '#222C34', unten: '#12181D' },
+};
+
+export function seeVerlauf(zustand) {
+  const dunkel = Boolean(zustand.dunkel);
+  if (zustand.veto) return GEWITTER[dunkel ? 'dunkel' : 'hell'];
+  const mitte = hexZuRgb(seeFarbe(zustand));
+  const oben = mischen(mitte, dunkel ? [60, 80, 86] : [255, 255, 255], dunkel ? 0.18 : 0.5);
+  const unten = mischen(mitte, dunkel ? [0, 0, 0] : [62, 142, 149], dunkel ? 0.42 : 0.28);
+  return { oben: rgbZuHex(oben), mitte: rgbZuHex(mitte), unten: rgbZuHex(unten) };
+}

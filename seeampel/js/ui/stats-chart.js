@@ -92,5 +92,5 @@ export function statistikKarte(eintraege, heute, { onEintragen, onOeffnen }) {
         ${balken}</svg>`)),
     tabelle,
     h('p', { class: 'sehr-klein nebentext', text: 'Kilometer pro Woche' }),
-    h('button', { class: 'knopf knopf-primaer knopf-breit', type: 'button', text: 'Schwumm eintragen', onclick: onEintragen }));
+    h('button', { class: 'knopf knopf-primaer knopf-breit', type: 'button', onclick: onEintragen }, ICON.plus(), 'Schwumm eintragen'));
 }

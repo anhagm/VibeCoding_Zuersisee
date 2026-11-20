@@ -9,13 +9,13 @@ body {
   font-size: var(--normal);
   line-height: 1.45;
   color: var(--text);
-  background: var(--see);
+  background-color: var(--see);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 
 h1, h2, h3, p { margin: 0; }
-h1 { font-size: var(--gross); font-weight: 650; letter-spacing: -.01em; }
+h1 { font-family: var(--stimme); font-variation-settings: 'SOFT' 100, 'opsz' 72; font-size: 2rem; font-weight: 600; letter-spacing: -.015em; line-height: 1.1; }
 h2 { font-size: 1.0625rem; font-weight: 600; }
 h3 { font-size: var(--normal); font-weight: 600; }
 

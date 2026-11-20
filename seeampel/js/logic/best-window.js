@@ -28,7 +28,7 @@ export function besteZeitfenster(wasser, stunden, profil, jetzt) {
   }));
 
   const max = Math.max(...bewertet.map((b) => b.sterne));
-  if (max === 0) return { art: 'schlecht', text: 'Heute kein gutes Zeitfenster (Prognose)' };
+  if (max === 0) return { art: 'schlecht', text: 'Heute kein gutes Zeitfenster (Prognose)', stunden: bewertet };
 
   const start = bewertet.findIndex((b) => b.sterne === max);
   let ende = start;
@@ -39,7 +39,7 @@ export function besteZeitfenster(wasser, stunden, profil, jetzt) {
   const von = bewertet[start].stunde;
   const bis = bewertet[ende].stunde + 1;
   return {
-    art: 'fenster', von, bis, sterne: max,
+    art: 'fenster', von, bis, sterne: max, stunden: bewertet,
     text: `Am besten heute ${von}–${bis} Uhr (${sterneText(max)}, Prognose)`,
   };
 }
