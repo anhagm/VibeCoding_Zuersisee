@@ -235,3 +235,34 @@ input[type="range"] { width: 100%; height: var(--ziel); accent-color: var(--prim
 /* Ansichten */
 .ansicht-titel { display: flex; align-items: center; gap: 4px; margin: 4px 0 2px; }
 .abschnitt-titel { font-size: var(--klein); font-weight: 600; color: var(--nebentext); text-transform: none; margin: 8px 2px 0; }
+
+/* Schwimmtagebuch-Karte auf der Startseite */
+.tagebuch-karte { display: grid; gap: 4px; }
+.karten-kopf {
+  all: unset; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  min-height: var(--ziel); margin: -6px 0 0; color: var(--text);
+}
+.karten-kopf:focus-visible { outline: 3px solid var(--primaer); outline-offset: 2px; border-radius: 8px; }
+.karten-kopf > span { display: grid; }
+.karten-kopf svg { width: 22px; height: 22px; color: var(--primaer); }
+.karten-titel { font-size: 1.0625rem; font-weight: 650; }
+.karten-untertitel { font-size: var(--sehr-klein); color: var(--nebentext); }
+.tagebuch-karte .statistik-kopf { margin-top: 6px; }
+.tagebuch-karte .knopf-breit { margin-top: 10px; }
+
+/* Schwimmtypen im Profil */
+.typen { display: grid; gap: 8px; }
+.typ {
+  display: grid; gap: 8px; text-align: left; padding: 12px 14px;
+  border-radius: var(--radius-klein); border: 1.5px solid var(--karte-rand); background: var(--karte);
+}
+.typ[aria-pressed="true"] { border-color: var(--primaer); box-shadow: inset 0 0 0 1px var(--primaer); }
+.typ-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.typ-name { font-weight: 650; font-size: 1.0625rem; }
+.typ-ideal { font-size: var(--klein); font-weight: 600; color: var(--primaer); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.typ-text { font-size: var(--klein); color: var(--nebentext); line-height: 1.35; }
+.skala { position: relative; height: 8px; border-radius: 999px; background: var(--stern-leer); }
+.skala-gut, .skala-ideal { position: absolute; top: 0; bottom: 0; border-radius: 999px; }
+.skala-gut { background: color-mix(in srgb, var(--primaer) 40%, transparent); }
+.skala-ideal { background: var(--primaer); }
+.skala-legende { display: flex; justify-content: space-between; font-size: var(--sehr-klein); color: var(--nebentext); margin-top: -4px; }

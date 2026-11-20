@@ -13,6 +13,13 @@ export function toleranzWert(toleranz) {
   return t;
 }
 
+// Wohlfühlbereiche für die Anzeige: ideal = 5 Sterne, gut = mindestens 3 Sterne (Grundwertung).
+export function bereiche(F, toleranz, min = 4, max = 28) {
+  const T = toleranzWert(toleranz);
+  const k = (x) => Math.min(max, Math.max(min, x));
+  return { ideal: [k(F - 1), k(F + 1)], gut: [k(F - 1 - T), k(F + 1 + T)] };
+}
+
 // Grundwertung aus Wassertemperatur, Lieblingstemperatur F und Toleranz T.
 export function grundwertung(wasser, F, T) {
   const punkte = [

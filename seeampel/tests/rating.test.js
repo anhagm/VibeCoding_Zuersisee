@@ -86,3 +86,10 @@ test('Begründungssatz', () => {
   assert.equal(veto.sterne, 0);
   assert.equal(veto.satz.prognose, true);
 });
+
+import { bereiche } from '../js/logic/rating.js';
+test('Wohlfühlbereiche der Schwimmtypen', () => {
+  assert.deepEqual(bereiche(7, 'weit'), { ideal: [6, 8], gut: [4, 12] });
+  assert.deepEqual(bereiche(23, 'mittel'), { ideal: [22, 24], gut: [19, 27] });
+  assert.deepEqual(bereiche(25, 'eng'), { ideal: [24, 26], gut: [22, 28] });
+});

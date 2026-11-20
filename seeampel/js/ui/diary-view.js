@@ -170,7 +170,7 @@ export function tagebuchAnsicht(ctx) {
     }
   }
 
-  const formular = h('section', { class: 'karte stapel', 'aria-label': 'Schwumm eintragen' },
+  const formular = h('section', { class: 'karte stapel', 'aria-label': 'Schwumm eintragen', tabindex: '-1' },
     titelDatum,
     h('div', { class: 'zeitwahl' }, start.el, ende.el),
     h('div', { class: 'feld' },
@@ -185,6 +185,15 @@ export function tagebuchAnsicht(ctx) {
   titelDatum.textContent = datumLang(zustand.datum);
   speicherKnopf.textContent = zustand.bearbeiteId ? 'Änderung speichern' : 'Speichern';
   zeichneListe();
+
+  // Vom Knopf "Schwumm eintragen": direkt zum Formular, heute ist schon gewählt.
+  if (ctx.fokusFormular) {
+    ctx.fokusFormular = false;
+    setTimeout(() => {
+      formular.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      formular.focus({ preventScroll: true });
+    }, 50);
+  }
 
   return [
     h('div', { class: 'ansicht-titel' },

@@ -11,9 +11,9 @@ export const TOLERANZ = {
 export const TOLERANZ_LABEL = { eng: 'Eng', mittel: 'Mittel', weit: 'Weit' };
 
 export const PRESETS = {
-  isbaer: { name: 'Isbär', lieblingstemperatur: 7, toleranz: 'weit' },
-  suenneler: { name: 'Sünneler', lieblingstemperatur: 23, toleranz: 'mittel' },
-  gfroerli: { name: 'Gfrörli', lieblingstemperatur: 25, toleranz: 'eng' },
+  isbaer: { name: 'Isbär', lieblingstemperatur: 7, toleranz: 'weit', beschreibung: 'Eisbaden im Winter – je kälter, desto besser.' },
+  suenneler: { name: 'Sünneler', lieblingstemperatur: 23, toleranz: 'mittel', beschreibung: 'Schwimmt im Sommer, wenn das Wasser angenehm ist.' },
+  gfroerli: { name: 'Gfrörli', lieblingstemperatur: 25, toleranz: 'eng', beschreibung: 'Geht nur bei richtig warmem Wasser hinein.' },
 };
 
 export const TEMP_MIN = 4;

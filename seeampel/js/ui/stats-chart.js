@@ -1,6 +1,6 @@
 // Überblick: Kilometer pro Woche der letzten acht Wochen, darüber drei Kennzahlen.
 
-import { h, svg } from '../util/dom.js';
+import { h, svg, ICON } from '../util/dom.js';
 import { km, datumKurz } from '../util/format.js';
 import { wochenstart, plusTage } from '../util/zeit.js';
 
@@ -35,14 +35,21 @@ function kennzahl(wert, label) {
   return h('div', {}, h('div', { class: 'kennzahl-wert', text: wert }), h('div', { class: 'kennzahl-label', text: label }));
 }
 
-export function statistikKarte(eintraege, heute, onErster) {
+// Kopf der Karte: Der Name "Schwimmtagebuch" führt ins Tagebuch, der Knopf direkt zum neuen Eintrag.
+function kartenKopf(onOeffnen, untertitel) {
+  return h('button', { class: 'karten-kopf', type: 'button', onclick: onOeffnen, 'aria-label': 'Schwimmtagebuch öffnen' },
+    h('span', {}, h('span', { class: 'karten-titel', text: 'Schwimmtagebuch' }), untertitel ? h('span', { class: 'karten-untertitel', text: untertitel }) : null),
+    ICON.rechts());
+}
+
+export function statistikKarte(eintraege, heute, { onEintragen, onOeffnen }) {
   const st = wochenStatistik(eintraege, heute);
 
   if (!eintraege.length) {
-    return h('section', { class: 'karte leer-zustand', 'aria-label': 'Schwimmtagebuch' },
-      h('h2', { text: 'Deine Schwümme' }),
+    return h('section', { class: 'karte tagebuch-karte leer-zustand', 'aria-label': 'Schwimmtagebuch' },
+      kartenKopf(onOeffnen, null),
       h('p', { class: 'nebentext', text: 'Noch keine Schwümme eingetragen' }),
-      h('button', { class: 'knopf knopf-primaer', type: 'button', text: 'Ersten Schwumm eintragen', onclick: onErster }));
+      h('button', { class: 'knopf knopf-primaer', type: 'button', text: 'Ersten Schwumm eintragen', onclick: onEintragen }));
   }
 
   const B = 320, H = 132, unten = 20, oben = 16;
@@ -73,8 +80,8 @@ export function statistikKarte(eintraege, heute, onErster) {
     h('caption', { text: 'Kilometer pro Woche' }),
     h('tbody', {}, st.wochen.map((w) => h('tr', {}, h('th', { text: `KW ${kw(w.start)}` }), h('td', { text: `${km(w.km)} km` })))));
 
-  return h('section', { class: 'karte', 'aria-label': 'Schwimmtagebuch, letzte 8 Wochen' },
-    h('div', { class: 'zeile verteilt' }, h('h2', { text: 'Letzte 8 Wochen' })),
+  return h('section', { class: 'karte tagebuch-karte', 'aria-label': 'Schwimmtagebuch' },
+    kartenKopf(onOeffnen, 'Letzte 8 Wochen'),
     h('div', { class: 'statistik-kopf' },
       kennzahl(String(st.anzahl), st.anzahl === 1 ? 'Schwumm' : 'Schwümme'),
       kennzahl(`${km(Math.round(st.total * 10) / 10)} km`, 'gesamt'),
@@ -84,5 +91,6 @@ export function statistikKarte(eintraege, heute, onErster) {
         <line x1="0" x2="${B}" y1="${H - unten}" y2="${H - unten}" stroke="currentColor" stroke-opacity=".12"/>
         ${balken}</svg>`)),
     tabelle,
-    h('p', { class: 'sehr-klein nebentext', text: 'Kilometer pro Woche' }));
+    h('p', { class: 'sehr-klein nebentext', text: 'Kilometer pro Woche' }),
+    h('button', { class: 'knopf knopf-primaer knopf-breit', type: 'button', text: 'Schwumm eintragen', onclick: onEintragen }));
 }

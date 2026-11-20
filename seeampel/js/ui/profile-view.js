@@ -6,6 +6,7 @@ import { speichereProfil } from '../storage/profile.js';
 import { exportDatei, pruefeImport } from '../storage/export-import.js';
 import { alleEintraege, speichereViele } from '../storage/diary-db.js';
 import { popup } from './modal.js';
+import { bereiche } from '../logic/rating.js';
 
 function segmente(name, optionen, gewaehlt, onChange) {
   return h('div', { class: 'segmente', role: 'radiogroup' },
@@ -27,18 +28,37 @@ export function profilAnsicht(ctx) {
   let toleranzBox = segmente('toleranz', TOLERANZ_LABEL, entwurf.toleranz, (w) => { entwurf.toleranz = w; entwurf.preset = null; aktualisiere(); });
   const toleranzHalter = h('div', {}, toleranzBox);
 
-  const presetKnoepfe = Object.entries(PRESETS).map(([id, p]) => h('button', {
-    class: 'preset', type: 'button', 'aria-pressed': 'false',
-    onclick: () => {
-      entwurf.lieblingstemperatur = p.lieblingstemperatur;
-      entwurf.toleranz = p.toleranz;
-      entwurf.preset = id;
-      regler.value = String(p.lieblingstemperatur);
-      toleranzBox = segmente('toleranz', TOLERANZ_LABEL, entwurf.toleranz, (w) => { entwurf.toleranz = w; entwurf.preset = null; aktualisiere(); });
-      toleranzHalter.replaceChildren(toleranzBox);
-      aktualisiere();
+  const prozent = (t) => `${((t - TEMP_MIN) / (TEMP_MAX - TEMP_MIN)) * 100}%`;
+  const skala = (b) => {
+    const balken = (klasse, [von, bis]) => {
+      const el = h('span', { class: klasse });
+      el.style.left = prozent(von);
+      el.style.width = `calc(${prozent(bis)} - ${prozent(von)})`;
+      return el;
+    };
+    return h('span', { class: 'skala', 'aria-hidden': 'true' }, balken('skala-gut', b.gut), balken('skala-ideal', b.ideal));
+  };
+
+  // Schwimmtypen: Name, ein Satz in Alltagssprache und der Wohlfühlbereich auf der Temperaturskala.
+  const presetKnoepfe = Object.entries(PRESETS).map(([id, p]) => {
+    const b = bereiche(p.lieblingstemperatur, p.toleranz);
+    return h('button', {
+      class: 'typ', type: 'button', 'aria-pressed': 'false',
+      'aria-label': `${p.name}: ${p.beschreibung} Ideal ${b.ideal[0]} bis ${b.ideal[1]} Grad.`,
+      onclick: () => {
+        entwurf.lieblingstemperatur = p.lieblingstemperatur;
+        entwurf.toleranz = p.toleranz;
+        entwurf.preset = id;
+        regler.value = String(p.lieblingstemperatur);
+        toleranzBox = segmente('toleranz', TOLERANZ_LABEL, entwurf.toleranz, (w) => { entwurf.toleranz = w; entwurf.preset = null; aktualisiere(); });
+        toleranzHalter.replaceChildren(toleranzBox);
+        aktualisiere();
+      },
     },
-  }, h('strong', { text: p.name }), h('span', { text: `${p.lieblingstemperatur} °C · ${TOLERANZ_LABEL[p.toleranz].toLowerCase()}` })));
+    h('span', { class: 'typ-kopf' }, h('span', { class: 'typ-name', text: p.name }), h('span', { class: 'typ-ideal', text: `ideal ${b.ideal[0]}–${b.ideal[1]} °C` })),
+    h('span', { class: 'typ-text', text: p.beschreibung }),
+    skala(b));
+  });
 
   function aktualisiere() {
     wertAnzeige.textContent = `${entwurf.lieblingstemperatur} °C`;
@@ -65,9 +85,13 @@ export function profilAnsicht(ctx) {
 
     h('section', { class: 'karte stapel' },
       h('div', { class: 'feld' },
-        h('span', { class: 'feld-label', text: 'Schnellstart' }),
-        h('div', { class: 'presets' }, presetKnoepfe),
-        h('span', { class: 'feld-hilfe', text: 'Belegt die Werte nur vor. Du kannst sie danach anpassen.' })),
+        h('h2', { class: 'feld-label', text: 'Welcher Schwimmtyp bist du?' }),
+        h('div', { class: 'typen' }, presetKnoepfe),
+        h('div', { class: 'skala-legende', 'aria-hidden': 'true' },
+          h('span', { text: `${TEMP_MIN} °C` }),
+          h('span', { text: 'Dunkel: ideal · hell: noch gut' }),
+          h('span', { text: `${TEMP_MAX} °C` })),
+        h('span', { class: 'feld-hilfe', text: 'Die Auswahl belegt die Werte darunter nur vor. Du kannst sie danach selbst einstellen.' })),
 
       h('div', { class: 'feld' },
         h('div', { class: 'regler-kopf' }, h('label', { class: 'feld-label', for: 'lieblingstemperatur', text: 'Lieblingstemperatur des Wassers' }), wertAnzeige),

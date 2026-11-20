@@ -56,7 +56,10 @@ export function startAnsicht(ctx) {
     }));
   }
 
-  teile.push(statistikKarte(ctx.eintraege, ctx.heute(), () => ctx.navigiere('#tagebuch')));
+  teile.push(statistikKarte(ctx.eintraege, ctx.heute(), {
+    onEintragen: () => { ctx.fokusFormular = true; ctx.navigiere('#tagebuch'); },
+    onOeffnen: () => ctx.navigiere('#tagebuch'),
+  }));
 
   if (hier.status === 'ok') teile.push(messzeit(hier.messung, name));
 
