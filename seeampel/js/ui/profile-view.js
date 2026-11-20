@@ -89,7 +89,7 @@ export function profilAnsicht(ctx) {
         h('div', { class: 'typen' }, presetKnoepfe),
         h('div', { class: 'skala-legende', 'aria-hidden': 'true' },
           h('span', { text: `${TEMP_MIN} °C` }),
-          h('span', { text: 'Dunkel: ideal · hell: noch gut' }),
+          h('span', { text: 'kräftig: ideal · blass: noch gut' }),
           h('span', { text: `${TEMP_MAX} °C` })),
         h('span', { class: 'feld-hilfe', text: 'Die Auswahl belegt die Werte darunter nur vor. Du kannst sie danach selbst einstellen.' })),
 
