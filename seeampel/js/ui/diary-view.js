@@ -29,6 +29,11 @@ export function tagebuchZuruecksetzen() {
   zustand = null;
 }
 
+// Angefangener Eintrag: Strecke oder Kommentar getippt, oder ein Eintrag wird gerade bearbeitet.
+export function tagebuchHatEntwurf() {
+  return Boolean(zustand && (zustand.strecke.trim() || zustand.kommentar.trim() || zustand.bearbeiteId));
+}
+
 export function tagebuchAnsicht(ctx) {
   if (!zustand) zustand = leererZustand(ctx);
   const tageMitEintrag = () => new Set(ctx.eintraege.map((e) => e.datum));

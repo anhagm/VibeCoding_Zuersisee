@@ -1,6 +1,8 @@
 // Einstieg: Zustand, Datenquellen, Routing und Ladesequenz.
 
 import { STATIONEN, PRESETS, LADEN } from './config.js';
+import { uhrzeit } from './util/format.js';
+import { bestaetigen } from './ui/modal.js';
 import { h, leeren, ICON } from './util/dom.js';
 import { lokalIso, datumTeil } from './util/zeit.js';
 import { ladeMessung, normalisiereMessung, ladeHistorischeMessung } from './data/measurement.js';
@@ -14,13 +16,18 @@ import { fischParade } from './ui/fisch.js';
 import { einblendenNachLaden } from './ui/loader.js';
 import { startAnsicht } from './ui/home-view.js';
 import { profilAnsicht } from './ui/profile-view.js';
-import { tagebuchAnsicht, tagebuchZuruecksetzen } from './ui/diary-view.js';
+import { tagebuchAnsicht, tagebuchZuruecksetzen, tagebuchHatEntwurf } from './ui/diary-view.js';
 import { hilfeAnsicht } from './ui/help-view.js';
 import { starteWellenring } from './ui/wellenring.js';
 
 const params = new URLSearchParams(location.search);
 const test = params.has('test') ? szenario(params.get('test')) || szenario('normal') : null;
 const testUhr = params.get('uhr');
+// Im Testmodus: &profil=isbaer | suenneler | gfroerli (Umlaute erlaubt).
+const testPreset = (() => {
+  const p = (params.get('profil') || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue');
+  return PRESETS[p] ? p : 'suenneler';
+})();
 
 const dunkelMq = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -70,10 +77,19 @@ const ctx = {
   geladenUm: 0,
   jetzt: () => lokalIso(jetztDate()),
   heute: () => datumTeil(lokalIso(jetztDate())),
-  navigiere(hash) {
+  // Wechsel innerhalb der App. Ein angefangener Tagebucheintrag geht nicht unbemerkt verloren.
+  async navigiere(hash) {
+    if (route() === 'tagebuch' && !hash.startsWith('#tagebuch') && !hash.startsWith('#hilfe') && tagebuchHatEntwurf()) {
+      const ok = await bestaetigen({
+        titel: 'Eintrag verlassen?', text: 'Dein angefangener Eintrag ist noch nicht gespeichert und geht verloren.',
+        ja: 'Verlassen', nein: 'Weiter bearbeiten', gefahr: true,
+      });
+      if (!ok) return;
+    }
     if (location.hash === hash) render();
     else location.hash = hash;
   },
+  aktualisierung: { laeuft: false, meldung: null },
   render: () => render(),
   ladeStationen: (opt) => ladeStationen(opt),
   ladeEintraege: () => ladeEintraege(),
@@ -127,10 +143,39 @@ function profilName() {
   return teile.length ? teile.join(' · ') : 'Profil';
 }
 
+// Logo: auf der Startseite Daten neu laden, sonst zurück zur Startseite.
+// Wichtig in der installierten PWA: Dort gibt es keinen Neu-laden-Knopf.
+async function logoGeklickt() {
+  if (route() !== 'start') { ctx.navigiere('#start'); return; }
+  const a = ctx.aktualisierung;
+  if (a.laeuft) return;
+  a.laeuft = true;
+  a.meldung = null;
+  render();
+  // Mindestens 0,6 s, damit die Rückmeldung wahrnehmbar ist, auch wenn die Daten schneller da sind.
+  await Promise.all([ladeStationen(), new Promise((r) => setTimeout(r, 600))]);
+  const ok = Object.values(ctx.stationen).some((s) => s.status === 'ok');
+  a.laeuft = false;
+  a.meldung = ok ? `Aktualisiert ${uhrzeit(new Date())}` : 'Keine Verbindung';
+  render();
+  clearTimeout(a.timer);
+  a.timer = setTimeout(() => { a.meldung = null; if (route() === 'start') render(); }, 3000);
+}
+
 function kopf(r) {
+  const a = ctx.aktualisierung;
+  const marke = ctx.profil
+    ? h('button', {
+      class: `wortmarke-knopf${a.laeuft ? ' laedt' : ''}`, type: 'button',
+      'aria-label': r === 'start' ? 'Seeampel, Daten aktualisieren' : 'Seeampel, zur Startseite',
+      'aria-busy': a.laeuft ? 'true' : null,
+      onclick: logoGeklickt,
+    }, 'Seeampel')
+    : 'Seeampel';
+  const ortText = r === 'start' && a.laeuft ? 'Wird aktualisiert …' : r === 'start' && a.meldung ? a.meldung : (ctx.profil ? STATIONEN[ctx.ansichtStation].name : null);
   const titel = h('div', { class: 'kopf-titel' },
-    h(r === 'start' ? 'h1' : 'span', { class: 'wortmarke', text: 'Seeampel' }),
-    ctx.profil ? h('span', { class: 'kopf-ort', text: STATIONEN[ctx.ansichtStation].name }) : null);
+    h(r === 'start' ? 'h1' : 'span', { class: 'wortmarke' }, marke),
+    ctx.profil ? h('span', { class: 'kopf-ort', role: 'status', text: ortText }) : null);
   const name = ctx.profil ? profilName() : '';
   const aktionen = ctx.profil
     ? h('nav', { class: 'kopf-aktionen', 'aria-label': 'Navigation' },
@@ -178,8 +223,9 @@ async function start() {
     await tagebuchLeeren().catch(() => {});
     if (test.tagebuch === 'beispiel') await speichereViele(testTagebuch(ctx.heute())).catch(() => {});
     if (!test.erststart) {
-      // Im Testmodus lassen sich Name und Schwimmart über die Adresse setzen: &name=Anna&art=trainieren
-      speichereProfil({ lieblingstemperatur: 23, toleranz: 'mittel', station: 'tiefenbrunnen', preset: 'suenneler', name: params.get('name') || '', art: params.get('art') || test.art || 'geniessen', wochenziel: 5 });
+      // Im Testmodus lassen sich Profil, Name und Schwimmart über die Adresse setzen: &profil=isbaer&name=Anna&art=trainieren
+      const p = PRESETS[testPreset];
+      speichereProfil({ lieblingstemperatur: p.lieblingstemperatur, toleranz: p.toleranz, station: 'tiefenbrunnen', preset: testPreset, name: params.get('name') || '', art: params.get('art') || test.art || 'geniessen', wochenziel: 5 });
     }
   }
 
