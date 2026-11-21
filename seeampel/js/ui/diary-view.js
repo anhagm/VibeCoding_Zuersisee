@@ -56,17 +56,10 @@ export function tagebuchAnsicht(ctx) {
     class: 'schaetz-option', type: 'button', 'aria-pressed': 'false',
     onclick: () => { zustand.schaetzArt = id; schaetzen(); },
   }, h('strong', { text: t.label }), h('span', { text: t.text })));
-  const schaetzBox = h('div', { class: 'schaetz-box', hidden: true, role: 'group', 'aria-label': 'Strecke schätzen' },
-    h('span', { class: 'feld-label', text: 'Wie bist du geschwommen?' }),
+  // Immer sichtbar: Für viele ist Schätzen der Hauptweg, nicht die Ausnahme.
+  const schaetzBox = h('div', { class: 'schaetz-box', role: 'group', 'aria-labelledby': 'schaetz-titel' },
+    h('span', { class: 'schaetz-titel', id: 'schaetz-titel', text: 'Strecke nicht bekannt? Schätzen nach Tempo:' }),
     h('div', { class: 'schaetz-optionen' }, schaetzKnoepfe));
-  const schaetzLink = h('button', {
-    class: 'knopf knopf-text schaetz-link', type: 'button', 'aria-expanded': 'false',
-    onclick: () => {
-      const auf = schaetzBox.hidden;
-      schaetzBox.hidden = !auf;
-      schaetzLink.setAttribute('aria-expanded', auf ? 'true' : 'false');
-    },
-  }, 'Weiss ich nicht – schätzen');
 
   const dauer = () => zustand.endeMin - zustand.startMin;
 
@@ -121,8 +114,6 @@ export function tagebuchAnsicht(ctx) {
     start.setze(zustand.startMin);
     ende.setze(zustand.endeMin);
     strecke.value = zustand.strecke;
-    schaetzBox.hidden = !zustand.schaetzArt;
-    schaetzLink.setAttribute('aria-expanded', zustand.schaetzArt ? 'true' : 'false');
     aktualisiereStrecke();
     kommentar.value = zustand.kommentar;
     zaehle();
@@ -232,9 +223,8 @@ export function tagebuchAnsicht(ctx) {
     h('div', { class: 'feld' },
       h('label', { class: 'feld-label', for: 'strecke', text: 'Strecke in km' }),
       strecke,
-      tempoZeile,
-      schaetzLink,
-      schaetzBox),
+      schaetzBox,
+      tempoZeile),
     h('div', { class: 'feld' },
       h('label', { class: 'feld-label', for: 'kommentar', text: 'Kommentar (optional)' }),
       kommentar, zaehler),
@@ -242,7 +232,6 @@ export function tagebuchAnsicht(ctx) {
     status);
 
   titelDatum.textContent = datumLang(zustand.datum);
-  if (zustand.schaetzArt) { schaetzBox.hidden = false; schaetzLink.setAttribute('aria-expanded', 'true'); }
   aktualisiereStrecke();
   speicherKnopf.textContent = zustand.bearbeiteId ? 'Änderung speichern' : 'Speichern';
   zeichneListe();

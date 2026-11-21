@@ -65,7 +65,7 @@ const ABSCHNITTE = [
     frage: 'Wie trage ich einen Schwumm ein?',
     absaetze: [
       'Tippe auf «Schwumm eintragen». Wähle im Kalender den Tag, heute ist schon gewählt. Stell mit den Rädern ein, von wann bis wann du geschwommen bist, und gib die Strecke in Kilometern ein, mit Komma oder Punkt. Ein Kommentar ist freiwillig.',
-      'Kennst du die Strecke nicht, tippe auf «Weiss ich nicht – schätzen» und wähle, wie du geschwommen bist: gemütlich (etwa 2 km/h), zügig (etwa 3 km/h) oder sportlich (etwa 4 km/h). Die App rechnet die Strecke aus der Dauer und markiert sie als geschätzt (≈). Unter dem Feld siehst du jederzeit, welchem Tempo deine Angaben entsprechen.',
+      'Kennst du die Strecke nicht, wähle unter dem Feld, wie du geschwommen bist: gemütlich (etwa 2 km/h), zügig (etwa 3 km/h) oder sportlich (etwa 4 km/h). Die App rechnet die Strecke aus der Dauer und markiert sie als geschätzt (≈). Unter dem Feld siehst du jederzeit, welchem Tempo deine Angaben entsprechen.',
       'Beim Speichern hängt die App die Messwerte der Badestelle zur Zeit deines Schwumms an. Ist ein Eintrag unmöglich, zum Beispiel schneller als Weltrekordtempo oder zeitgleich mit einem anderen, sagt dir ein Hinweis, was nicht stimmt.',
     ],
   },

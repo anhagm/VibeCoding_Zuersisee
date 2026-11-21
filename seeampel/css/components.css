@@ -329,12 +329,11 @@ section.stapel > .nebentext { color: var(--held-neben); }
 /* Strecke: Tempo während der Eingabe und Schätzung */
 .tempo-hinweis { font-size: var(--klein); color: var(--nebentext); min-height: 1.3em; font-variant-numeric: tabular-nums; }
 .tempo-hinweis.warnung { color: var(--warnung); font-weight: 650; }
-.schaetz-link { justify-self: start; margin-left: -10px; }
 .schaetz-box { display: grid; gap: 8px; }
-.schaetz-box[hidden] { display: none; }
+.schaetz-titel { font-size: var(--klein); font-weight: 650; }
 .schaetz-optionen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .schaetz-option {
-  display: grid; gap: 2px; align-content: start; text-align: left; min-height: 64px; padding: 10px 12px;
+  display: grid; gap: 2px; align-content: center; text-align: left; min-height: 56px; padding: 8px 12px;
   border-radius: var(--radius-klein); border: 1.5px solid var(--karte-rand); background: var(--karte);
 }
 .schaetz-option strong { font-weight: 700; }
