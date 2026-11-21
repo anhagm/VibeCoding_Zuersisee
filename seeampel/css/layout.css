@@ -81,3 +81,5 @@ main {
 .stapel { display: grid; gap: 12px; }
 .zeile { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .zeile.verteilt { justify-content: space-between; }
+.profil-knopf { max-width: 52vw; }
+.profil-knopf > span, .profil-knopf { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

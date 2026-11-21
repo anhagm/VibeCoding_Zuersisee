@@ -14,6 +14,8 @@ import { einblendenNachLaden } from './ui/loader.js';
 import { startAnsicht } from './ui/home-view.js';
 import { profilAnsicht } from './ui/profile-view.js';
 import { tagebuchAnsicht, tagebuchZuruecksetzen } from './ui/diary-view.js';
+import { hilfeAnsicht } from './ui/help-view.js';
+import { starteWellenring } from './ui/wellenring.js';
 
 const params = new URLSearchParams(location.search);
 const test = params.has('test') ? szenario(params.get('test')) || szenario('normal') : null;
@@ -109,16 +111,19 @@ async function ladeEintraege() {
 }
 
 function route() {
+  const r = location.hash.replace('#', '').split('/')[0];
+  if (r === 'hilfe') return 'hilfe';
   if (!ctx.profil) return 'profil';
-  const r = location.hash.replace('#', '');
   return ['tagebuch', 'profil'].includes(r) ? r : 'start';
 }
 
 // Name des Schwimmtyps im Profilknopf, wenn das Profil genau einem Typ entspricht.
+// Profilknopf: «Anna · Sünneler», «Anna», «Sünneler» oder «Profil».
 function profilName() {
   const p = ctx.profil;
   const typ = Object.values(PRESETS).find((t) => t.lieblingstemperatur === p.lieblingstemperatur && t.toleranz === p.toleranz);
-  return typ ? typ.name : 'Profil';
+  const teile = [p.name, typ?.name].filter(Boolean);
+  return teile.length ? teile.join(' · ') : 'Profil';
 }
 
 function kopf(r) {
@@ -130,7 +135,7 @@ function kopf(r) {
     ? h('nav', { class: 'kopf-aktionen', 'aria-label': 'Navigation' },
       r !== 'tagebuch' ? h('button', { class: 'knopf knopf-text', type: 'button', text: 'Tagebuch', onclick: () => ctx.navigiere('#tagebuch') }) : null,
       h('button', {
-        class: 'knopf', type: 'button', 'aria-current': r === 'profil' ? 'page' : null,
+        class: 'knopf profil-knopf', type: 'button', 'aria-current': r === 'profil' ? 'page' : null,
         'aria-label': name === 'Profil' ? 'Profil bearbeiten' : `Profil: ${name}, bearbeiten`,
         onclick: () => ctx.navigiere('#profil'),
       }, name, ICON.runter()))
@@ -149,13 +154,14 @@ let letzteRoute = null;
 function render() {
   const app = document.getElementById('app');
   const r = route();
-  if (r !== letzteRoute && letzteRoute === 'tagebuch') tagebuchZuruecksetzen();
+  if (r !== letzteRoute && letzteRoute === 'tagebuch' && r !== 'hilfe') tagebuchZuruecksetzen();
   const wechsel = r !== letzteRoute;
   letzteRoute = r;
 
   let inhalt;
   if (r === 'profil') inhalt = profilAnsicht(ctx);
   else if (r === 'tagebuch') inhalt = tagebuchAnsicht(ctx);
+  else if (r === 'hilfe') inhalt = hilfeAnsicht(ctx, location.hash.split('/')[1] || null);
   else inhalt = startAnsicht(ctx);
 
   document.body.dataset.route = r;
@@ -171,11 +177,13 @@ async function start() {
     await tagebuchLeeren().catch(() => {});
     if (test.tagebuch === 'beispiel') await speichereViele(testTagebuch(ctx.heute())).catch(() => {});
     if (!test.erststart) {
-      speichereProfil({ lieblingstemperatur: 23, toleranz: 'mittel', station: 'tiefenbrunnen', preset: 'suenneler' });
+      // Im Testmodus lassen sich Name und Schwimmart über die Adresse setzen: &name=Anna&art=trainieren
+      speichereProfil({ lieblingstemperatur: 23, toleranz: 'mittel', station: 'tiefenbrunnen', preset: 'suenneler', name: params.get('name') || '', art: params.get('art') || test.art || 'geniessen', wochenziel: 5 });
     }
   }
 
   starteHintergrund(document.getElementById('see'));
+  starteWellenring();
   ctx.profil = ladeProfil();
   if (ctx.profil) ctx.ansichtStation = ctx.profil.station;
 

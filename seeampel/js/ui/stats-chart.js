@@ -1,28 +1,12 @@
 // Überblick: Kilometer pro Woche der letzten acht Wochen, darüber drei Kennzahlen.
+// Die Kennzahlen hängen von der Schwimmart ab: Geniessen zeigt Zeit im Wasser, Trainieren Tempo und Wochenziel.
 
 import { h, svg, ICON } from '../util/dom.js';
 import { km, datumKurz } from '../util/format.js';
-import { wochenstart, plusTage } from '../util/zeit.js';
+import { dauerText } from '../util/zeit.js';
+import { wochenStatistik, paceText } from '../logic/diary-stats.js';
 
-export function wochenStatistik(eintraege, heute) {
-  const aktuelleWoche = wochenstart(heute);
-  const wochen = Array.from({ length: 8 }, (_, i) => {
-    const start = plusTage(aktuelleWoche, (i - 7) * 7);
-    return { start, ende: plusTage(start, 6), km: 0, anzahl: 0 };
-  });
-  const erste = wochen[0].start;
-  const imZeitraum = eintraege.filter((e) => e.datum >= erste && e.datum <= heute);
-  for (const e of imZeitraum) {
-    const w = wochen.find((x) => e.datum >= x.start && e.datum <= x.ende);
-    if (w) { w.km += e.strecke; w.anzahl++; }
-  }
-  return {
-    wochen,
-    anzahl: imZeitraum.length,
-    total: imZeitraum.reduce((s, e) => s + e.strecke, 0),
-    laengster: imZeitraum.reduce((m, e) => Math.max(m, e.strecke), 0),
-  };
-}
+export { wochenStatistik };
 
 const kw = (datum) => {
   const [y, m, d] = datum.split('-').map(Number);
@@ -42,7 +26,8 @@ function kartenKopf(onOeffnen, untertitel) {
     ICON.rechts());
 }
 
-export function statistikKarte(eintraege, heute, { onEintragen, onOeffnen }) {
+export function statistikKarte(eintraege, heute, { onEintragen, onOeffnen, art = 'geniessen', wochenziel = 5 }) {
+  const training = art === 'trainieren';
   const st = wochenStatistik(eintraege, heute);
 
   if (!eintraege.length) {
@@ -53,7 +38,7 @@ export function statistikKarte(eintraege, heute, { onEintragen, onOeffnen }) {
   }
 
   const B = 320, H = 132, unten = 20, oben = 16;
-  const max = Math.max(1, ...st.wochen.map((w) => w.km));
+  const max = Math.max(1, ...st.wochen.map((w) => w.km), training ? wochenziel : 0);
   const spalte = B / st.wochen.length;
   const breite = Math.min(22, spalte - 14);
   const hoeheMax = H - unten - oben;
@@ -76,20 +61,31 @@ export function statistikKarte(eintraege, heute, { onEintragen, onOeffnen }) {
     </g>`;
   }).join('');
 
+  // Beim Trainieren: gestrichelte Linie fürs Wochenziel.
+  const zielY = H - unten - (wochenziel / max) * hoeheMax;
+  const ziellinie = training
+    ? `<line class="ziel" x1="0" x2="${B}" y1="${zielY}" y2="${zielY}" stroke-dasharray="4 4"/><text class="ziel-text" x="${B}" y="${zielY - 4}" text-anchor="end">Ziel ${km(wochenziel)} km</text>`
+    : '';
+
   const tabelle = h('table', { class: 'visuell-versteckt' },
     h('caption', { text: 'Kilometer pro Woche' }),
     h('tbody', {}, st.wochen.map((w) => h('tr', {}, h('th', { text: `KW ${kw(w.start)}` }), h('td', { text: `${km(w.km)} km` })))));
 
   return h('section', { class: 'karte tagebuch-karte', 'aria-label': 'Schwimmtagebuch' },
     kartenKopf(onOeffnen, 'Letzte 8 Wochen'),
-    h('div', { class: 'statistik-kopf' },
-      kennzahl(String(st.anzahl), st.anzahl === 1 ? 'Schwumm' : 'Schwümme'),
-      kennzahl(`${km(Math.round(st.total * 10) / 10)} km`, 'gesamt'),
-      kennzahl(`${km(st.laengster)} km`, 'längster')),
+    training
+      ? h('div', { class: 'statistik-kopf' },
+        kennzahl(`${km(Math.round(st.dieseWoche * 10) / 10)} / ${km(wochenziel)} km`, 'diese Woche'),
+        kennzahl(`${paceText(st.pace100)}`, 'Ø min pro 100 m'),
+        kennzahl(`${km(Math.round(st.total * 10) / 10)} km`, 'in 8 Wochen'))
+      : h('div', { class: 'statistik-kopf' },
+        kennzahl(String(st.anzahl), st.anzahl === 1 ? 'Schwumm' : 'Schwümme'),
+        kennzahl(st.minuten ? dauerText(st.minuten) : '–', 'im Wasser'),
+        kennzahl(`${km(Math.round(st.total * 10) / 10)} km`, 'geschwommen')),
     h('div', { class: 'diagramm', 'aria-hidden': 'true' },
       svg(`<svg viewBox="0 0 ${B} ${H}" role="presentation">
         <line x1="0" x2="${B}" y1="${H - unten}" y2="${H - unten}" stroke="currentColor" stroke-opacity=".12"/>
-        ${balken}</svg>`)),
+        ${balken}${ziellinie}</svg>`)),
     tabelle,
     h('p', { class: 'sehr-klein nebentext', text: 'Kilometer pro Woche' }),
     h('button', { class: 'knopf knopf-primaer knopf-breit', type: 'button', onclick: onEintragen }, ICON.plus(), 'Schwumm eintragen'));

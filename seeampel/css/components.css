@@ -256,7 +256,7 @@ input[type="range"] { width: 100%; height: var(--ziel); accent-color: var(--prim
   animation: hochgleiten 220ms ease-out;
 }
 .popup-text { line-height: 1.4; }
-.popup-aktionen { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.popup-aktionen { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 
 /* Ansichten */
 .ansicht-titel { display: flex; align-items: center; gap: 4px; margin: 4px 0 2px; }
@@ -303,3 +303,25 @@ main > .stapel > .nebentext,
 section.stapel > .nebentext { color: var(--held-neben); }
 .ansicht-titel .knopf-text { color: var(--held-link); }
 .diagramm svg { max-height: 170px; }
+.diagramm .ziel { stroke: var(--text); stroke-opacity: .55; stroke-width: 1.5; }
+.diagramm .ziel-text { fill: var(--nebentext); font-size: 10px; font-weight: 700; font-family: var(--schrift); }
+.wie-link { font-size: var(--sehr-klein); color: var(--held-neben); text-underline-offset: 3px; min-height: 44px; margin: -10px 0 -12px; display: inline-flex; align-items: center; }
+.wie-link:hover { color: var(--held-link); }
+.eingabe-kurz { max-width: 8rem; }
+.hilfe-link { text-decoration: none; background: var(--karte-leicht); }
+.daten-geraet { display: grid; gap: 2px; margin-top: 8px; }
+.daten-geraet .zeile { margin-left: -10px; }
+.daten-geraet .knopf-gefahr { color: var(--held-warn); }
+
+/* Hilfe */
+.faq-liste { display: grid; gap: 10px; }
+.faq { padding: 0; }
+.faq summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 56px; padding: 12px 16px; font-weight: 700;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary svg { width: 18px; height: 18px; flex: none; color: var(--primaer); transition: transform .2s ease; }
+.faq[open] summary svg { transform: rotate(180deg); }
+.faq summary:focus-visible { outline: 3px solid var(--primaer); outline-offset: -3px; border-radius: var(--radius); }
+.faq-antwort { padding: 0 16px 16px; display: grid; gap: 10px; font-size: .9375rem; line-height: 1.5; max-width: 62ch; }

@@ -11,10 +11,12 @@ const FEHLERTEXT = {
   prognose: ['Prognose unvollständig', 'Ohne Prognose lässt sich ein Gewitter nicht ausschliessen.'],
 };
 
-export function bewertungKarte({ status, art, ergebnis, onNochmals }) {
+export function bewertungKarte({ status, art, ergebnis, name = '', onNochmals }) {
+  const fuer = `Jetzt · für ${name || 'dich'}`;
+  const wieLink = () => h('a', { class: 'wie-link', href: '#hilfe/sterne', text: 'Wie entsteht die Bewertung?' });
   if (status === 'laden') {
     return h('section', { class: 'bewertung', 'aria-busy': 'true' },
-      h('p', { class: 'bewertung-ort', text: 'Jetzt · für dich' }),
+      h('p', { class: 'bewertung-ort', text: fuer }),
       h('p', { class: 'laden-text', text: 'Messwerte werden geladen' }));
   }
   if (status === 'fehler') {
@@ -28,14 +30,16 @@ export function bewertungKarte({ status, art, ergebnis, onNochmals }) {
 
   if (ergebnis.veto) {
     return h('section', { class: 'bewertung veto', 'aria-live': 'polite' },
-      h('p', { class: 'bewertung-ort', text: 'Jetzt · für dich' }),
+      h('p', { class: 'bewertung-ort', text: fuer }),
       h('div', { class: 'veto-kopf' }, ICON.warn(), h('span', { class: 'veto-null', text: '0 Sterne' })),
-      h('p', { class: 'satz', text: ergebnis.satz.text }));
+      h('p', { class: 'satz', text: ergebnis.satz.text }),
+      wieLink());
   }
   return h('section', { class: 'bewertung', 'aria-live': 'polite' },
-    h('p', { class: 'bewertung-ort', text: 'Jetzt · für dich' }),
+    h('p', { class: 'bewertung-ort', text: fuer }),
     sterne(ergebnis.sterne),
-    h('p', { class: `satz${ergebnis.satz.prognose ? ' prognose' : ''}`, text: ergebnis.satz.text }));
+    h('p', { class: `satz${ergebnis.satz.prognose ? ' prognose' : ''}`, text: ergebnis.satz.text }),
+    wieLink());
 }
 
 function wert({ icon, label, wert, zusatz }) {

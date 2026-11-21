@@ -19,6 +19,7 @@ export const SZENARIEN = {
   offline: { offline: true },
   besser: { wind: 6.5, boeen: 9, mythenquai: { wind: 1.5, boeen: 3 } },
   tagebuch: { tagebuch: 'beispiel' },
+  training: { tagebuch: 'beispiel', art: 'trainieren' },
   leer: { tagebuch: 'leer' },
   erststart: { erststart: true },
 };

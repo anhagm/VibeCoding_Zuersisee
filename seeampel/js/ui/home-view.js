@@ -40,7 +40,7 @@ export function startAnsicht(ctx) {
   const rechts = h('div', { class: 'start-rechts' });
 
   links.append(mit('bereich-held', bewertungKarte({
-    status: hier.status, art: hier.art, ergebnis: hier.ergebnis,
+    status: hier.status, art: hier.art, ergebnis: hier.ergebnis, name: ctx.profil.name,
     onNochmals: () => ctx.ladeStationen({ neu: true }),
   })));
 
@@ -83,6 +83,8 @@ export function startAnsicht(ctx) {
   rechts.append(mit('bereich-tagebuch', statistikKarte(ctx.eintraege, ctx.heute(), {
     onEintragen: () => { ctx.fokusFormular = true; ctx.navigiere('#tagebuch'); },
     onOeffnen: () => ctx.navigiere('#tagebuch'),
+    art: ctx.profil.art,
+    wochenziel: ctx.profil.wochenziel,
   })));
 
   // Wasserszene und Farben folgen den Daten.

@@ -37,7 +37,7 @@ export function starteHintergrund(el) {
 
   const strahlen = ebene('see-strahlen', '<i></i><i></i><i></i>');
   const blasen = ebene('see-blasen', '<i></i><i></i><i></i><i></i><i></i>');
-  const beschlag = ebene('see-beschlag', '<div class="see-nebel"></div><i></i><i></i><i></i><i></i><i></i>');
+  const beschlag = ebene('see-beschlag', '<div class="see-nebel"></div>');
 
   see.append(...gruende, ebene('see-kaustik', KAUSTIK), strahlen, wellen, blasen, beschlag, ebene('see-blitz'));
 

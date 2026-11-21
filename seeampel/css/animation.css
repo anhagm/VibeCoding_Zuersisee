@@ -63,7 +63,7 @@
 .see-blasen i:nth-child(4) { left: 81%; width: 10px; height: 10px; animation-duration: 15s; animation-delay: -1s; }
 .see-blasen i:nth-child(5) { left: 92%; width: 6px; height: 6px; animation-duration: 11s; animation-delay: -6s; }
 
-/* Kälte: beschlagener Rand und Tropfen */
+/* Kälte: beschlagener Rand */
 .see-beschlag { position: absolute; inset: 0; display: none; }
 #see.mit-beschlag .see-beschlag { display: block; animation: see-ein 1.5s ease-out both; }
 .see-nebel {
@@ -74,26 +74,13 @@
   -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 42%, transparent 55%, #000 100%);
   mask-image: radial-gradient(ellipse 70% 55% at 50% 42%, transparent 55%, #000 100%);
 }
-.see-beschlag i {
-  position: absolute; width: 9px; height: 12px;
-  border-radius: 50% 50% 50% 50% / 60% 60% 42% 42%;
-  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), rgba(255,255,255,.25) 55%, rgba(255,255,255,0) 72%);
-  box-shadow: 0 1px 1px rgba(0,0,0,.08);
-  animation: see-tropfen 16s ease-in infinite;
-}
-.see-beschlag i:nth-child(2) { left: 2.5%; top: 12%; }
-.see-beschlag i:nth-child(3) { left: 5%; top: 46%; width: 7px; height: 9px; animation-duration: 19s; animation-delay: -5s; }
-.see-beschlag i:nth-child(4) { right: 3%; top: 26%; width: 10px; height: 13px; animation-delay: -2s; }
-.see-beschlag i:nth-child(5) { right: 6%; top: 64%; width: 6px; height: 8px; animation-duration: 21s; animation-delay: -9s; }
-.see-beschlag i:nth-child(6) { left: 3.5%; top: 76%; width: 8px; height: 10px; animation-duration: 17s; animation-delay: -3s; }
-
 /* Veto: Wetterleuchten */
 .see-blitz { position: absolute; inset: 0; background: #fff; opacity: 0; display: none; }
 #see.mit-blitz .see-blitz { display: block; animation: see-blitz 9s linear infinite; }
 
 /* Unsicher oder Fehler: alles steht */
 #see.still .see-kaustik, #see.still .see-welle, #see.still .see-strahlen i,
-#see.still .see-blasen i, #see.still .see-beschlag i,
+#see.still .see-blasen i,
 #see.pausiert * { animation-play-state: paused; }
 #see.still .see-blasen, #see.still .see-strahlen { opacity: 0; }
 
@@ -101,7 +88,6 @@
 @keyframes see-strahl { 0%, 100% { opacity: .3; } 50% { opacity: .75; } }
 @keyframes see-welle { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes see-blase { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: .8; } 100% { transform: translateY(-110vh); opacity: 0; } }
-@keyframes see-tropfen { 0% { transform: translateY(0); } 70% { transform: translateY(18vh); } 100% { transform: translateY(21vh); opacity: 0; } }
 @keyframes see-blitz { 0%, 91%, 95%, 100% { opacity: 0; } 92% { opacity: .3; } 93% { opacity: .05; } 94% { opacity: .18; } }
 @keyframes see-ein { from { opacity: 0; } to { opacity: 1; } }
 @keyframes einblenden { from { opacity: 0; } to { opacity: 1; } }
@@ -131,7 +117,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   #see *, .intro, .intro * { animation: none !important; transition: none !important; }
-  #see.mit-beschlag .see-beschlag i { display: none; }
   *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }
 
@@ -152,3 +137,13 @@
 .fisch.schnell .fisch-schwanz { animation-duration: .22s; }
 @keyframes fisch-schwanz { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
 @media (prefers-color-scheme: dark) { .fisch { color: #6FC0DE; } .fisch.sichtbar { opacity: .6; } .fisch .fisch-auge { fill: #0B1A20; } }
+
+/* Wellenring beim Antippen (nur Touch, siehe js/ui/wellenring.js) */
+.wellenring {
+  position: fixed; z-index: 60; pointer-events: none;
+  width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .85);
+  box-shadow: 0 0 0 1px rgba(27, 106, 135, .25);
+  animation: wellenring .65s cubic-bezier(.2, .7, .3, 1) forwards;
+}
+@keyframes wellenring { from { transform: scale(.2); opacity: .9; } to { transform: scale(1.6); opacity: 0; } }

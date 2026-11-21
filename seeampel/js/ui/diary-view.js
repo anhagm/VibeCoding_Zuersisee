@@ -9,6 +9,7 @@ import { zeitRad } from './time-wheel.js';
 import { popup, bestaetigen } from './modal.js';
 import { datumLang, datumKurz, km, zahl, ganz, monatTitel } from '../util/format.js';
 import { minutenZuText, lokalZuDate } from '../util/zeit.js';
+import { paceText, paceEintrag } from '../logic/diary-stats.js';
 
 // Bleibt über Neuzeichnen hinweg erhalten.
 let zustand = null;
@@ -132,7 +133,8 @@ export function tagebuchAnsicht(ctx) {
     }
     for (const e of liste) {
       const mw = e.messwerte;
-      const meta = [STATIONEN[e.station]?.name, mw ? `Wasser ${zahl(mw.wasser)}°` : null, mw ? `Luft ${ganz(mw.luft)}°` : null, mw ? null : 'ohne Messwerte']
+      const tempo = ctx.profil.art === 'trainieren' ? `${paceText(paceEintrag(e))} min/100 m` : null;
+      const meta = [STATIONEN[e.station]?.name, tempo, mw ? `Wasser ${zahl(mw.wasser)}°` : null, mw ? `Luft ${ganz(mw.luft)}°` : null, mw ? null : 'ohne Messwerte']
         .filter(Boolean).join(' · ');
       listeBox.append(h('article', { class: `karte karte-flach eintrag${e.id === zustand.bearbeiteId ? ' in-bearbeitung' : ''}` },
         h('div', {},

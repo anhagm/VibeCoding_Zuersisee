@@ -2,10 +2,11 @@
 
 import { h } from '../util/dom.js';
 import { PRESETS, STATIONEN, TOLERANZ_LABEL, TEMP_MIN, TEMP_MAX } from '../config.js';
-import { speichereProfil } from '../storage/profile.js';
-import { exportDatei, pruefeImport } from '../storage/export-import.js';
-import { alleEintraege, speichereViele } from '../storage/diary-db.js';
-import { popup } from './modal.js';
+import { speichereProfil, loescheProfil, SCHWIMMARTEN, NAME_MAX } from '../storage/profile.js';
+import { exportDatei, csvDatei, pruefeImport } from '../storage/export-import.js';
+import { alleEintraege, speichereViele, leeren as tagebuchLeeren } from '../storage/diary-db.js';
+import { popup, bestaetigen } from './modal.js';
+import { tagebuchZuruecksetzen } from './diary-view.js';
 import { bereiche } from '../logic/rating.js';
 
 function segmente(name, optionen, gewaehlt, onChange) {
@@ -17,7 +18,23 @@ function segmente(name, optionen, gewaehlt, onChange) {
 
 export function profilAnsicht(ctx) {
   const erststart = !ctx.profil;
-  const entwurf = { ...(ctx.profil || { lieblingstemperatur: 20, toleranz: 'mittel', station: 'tiefenbrunnen', preset: null }) };
+  const entwurf = { ...(ctx.profil || { lieblingstemperatur: 20, toleranz: 'mittel', station: 'tiefenbrunnen', preset: null, name: '', art: 'geniessen', wochenziel: 5 }) };
+
+  // Über dich: Name (freiwillig) und Schwimmart. Das Wochenziel erscheint nur beim Trainieren.
+  const nameFeld = h('input', {
+    class: 'eingabe', id: 'name', type: 'text', autocomplete: 'given-name', maxlength: String(NAME_MAX),
+    placeholder: 'Vorname', value: entwurf.name || '',
+    oninput: () => { entwurf.name = nameFeld.value; },
+  });
+  const zielFeld = h('input', {
+    class: 'eingabe eingabe-kurz', id: 'wochenziel', type: 'text', inputmode: 'decimal', autocomplete: 'off',
+    value: String(entwurf.wochenziel ?? 5).replace('.', ','),
+  });
+  const zielBox = h('div', { class: 'feld', hidden: entwurf.art !== 'trainieren' },
+    h('label', { class: 'feld-label', for: 'wochenziel', text: 'Wochenziel in km' }),
+    zielFeld,
+    h('span', { class: 'feld-hilfe', text: 'Erscheint als Linie im Diagramm deines Tagebuchs.' }));
+  const artBox = segmente('art', SCHWIMMARTEN, entwurf.art, (w) => { entwurf.art = w; zielBox.hidden = w !== 'trainieren'; });
 
   const wertAnzeige = h('span', { class: 'regler-wert', 'aria-hidden': 'true' });
   const regler = h('input', {
@@ -70,7 +87,14 @@ export function profilAnsicht(ctx) {
   }
   aktualisiere();
 
-  const speichern = () => {
+  const speichern = async () => {
+    const ziel = Number(String(zielFeld.value).trim().replace(',', '.'));
+    if (entwurf.art === 'trainieren' && !(ziel >= 1 && ziel <= 100)) {
+      await popup({ text: 'Das Wochenziel muss zwischen 1 und 100 km liegen.' });
+      zielFeld.focus();
+      return;
+    }
+    if (entwurf.art === 'trainieren') entwurf.wochenziel = ziel;
     ctx.profil = speichereProfil(entwurf);
     ctx.ansichtStation = ctx.profil.station;
     ctx.navigiere('#start');
@@ -80,8 +104,19 @@ export function profilAnsicht(ctx) {
     h('div', { class: 'stapel' },
       h('h1', { text: erststart ? 'Willkommen' : 'Profil' }),
       h('p', { class: 'nebentext', text: erststart
-        ? 'Drei Angaben, damit die Bewertung zu dir passt. Gespeichert wird nur auf diesem Gerät, ohne Login.'
+        ? 'Ein paar Angaben, damit die Bewertung zu dir passt. Gespeichert wird nur auf diesem Gerät, ohne Login.'
         : 'Die Bewertung richtet sich nach diesen Angaben. Gespeichert nur auf diesem Gerät.' })),
+
+    h('section', { class: 'karte stapel', 'aria-label': 'Über dich' },
+      h('div', { class: 'feld' },
+        h('label', { class: 'feld-label', for: 'name', text: 'Wie heisst du? (freiwillig)' }),
+        nameFeld,
+        h('span', { class: 'feld-hilfe', text: 'Erscheint über deiner Bewertung: «Jetzt · für …»' })),
+      h('div', { class: 'feld' },
+        h('span', { class: 'feld-label', text: 'Wie schwimmst du?' }),
+        artBox,
+        h('span', { class: 'feld-hilfe', text: 'Beim Trainieren zeigt das Tagebuch Tempo und Wochenziel, beim Geniessen die Zeit im Wasser.' })),
+      zielBox),
 
     h('section', { class: 'karte stapel' },
       h('div', { class: 'feld' },
@@ -128,13 +163,59 @@ export function profilAnsicht(ctx) {
         await popup({ text: `${r.neu.length} ${r.neu.length === 1 ? 'Eintrag' : 'Einträge'} importiert.${teil}`, knoepfe: [{ label: 'OK', primaer: true }] });
       },
     });
-    teile.push(h('section', { class: 'karte stapel', 'aria-label': 'Tagebuch sichern' },
-      h('h2', { text: 'Tagebuch sichern' }),
-      h('p', { class: 'nebentext klein', text: 'Das Tagebuch liegt nur auf diesem Gerät. Exportiere es als Datei, um es zu sichern oder auf ein anderes Gerät zu übertragen.' }),
+    const stationName = (id) => STATIONEN[id]?.name || id;
+    const sichern = async () => exportDatei(await alleEintraege(), ctx.heute());
+
+    teile.push(h('section', { class: 'karte stapel', 'aria-label': 'Tagebuch herunterladen' },
+      h('h2', { text: 'Tagebuch herunterladen' }),
+      h('p', { class: 'nebentext klein', text: 'Als Tabelle für Excel, Numbers oder Google Sheets. Die Sicherung brauchst du, um das Tagebuch auf ein anderes Gerät zu übertragen.' }),
       h('div', { class: 'zeile' },
-        h('button', { class: 'knopf', type: 'button', text: 'Exportieren', onclick: async () => exportDatei(await alleEintraege(), ctx.heute()) }),
-        h('button', { class: 'knopf', type: 'button', text: 'Importieren', onclick: () => datei.click() }),
+        h('button', { class: 'knopf', type: 'button', text: 'Tabelle (CSV)', onclick: async () => csvDatei(await alleEintraege(), ctx.heute(), stationName) }),
+        h('button', { class: 'knopf', type: 'button', text: 'Sicherung', onclick: sichern }),
+        h('button', { class: 'knopf knopf-text', type: 'button', text: 'Sicherung importieren', onclick: () => datei.click() }),
         datei)));
+
+    teile.push(h('a', { class: 'knopf knopf-breit hilfe-link', href: '#hilfe', text: 'Hilfe und Anleitung' }));
+
+    // Bewusst unauffällig am Schluss: Daten auf diesem Gerät löschen.
+    const zuruecksetzen = async () => {
+      const ok = await bestaetigen({
+        titel: 'Profil zurücksetzen?',
+        text: 'Name, Schwimmtyp, Lieblingstemperatur und Badestelle werden gelöscht. Dein Tagebuch bleibt erhalten.',
+        ja: 'Zurücksetzen', gefahr: true,
+      });
+      if (!ok) return;
+      loescheProfil();
+      ctx.profil = null;
+      ctx.navigiere('#start');
+    };
+    const allesLoeschen = async () => {
+      for (;;) {
+        const wahl = await popup({
+          titel: 'Alle Daten löschen?',
+          text: `Profil und Tagebuch mit ${ctx.eintraege.length} ${ctx.eintraege.length === 1 ? 'Eintrag' : 'Einträgen'} werden von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.`,
+          knoepfe: [
+            { label: 'Abbrechen', wert: false },
+            { label: 'Zuerst sichern', wert: 'sichern' },
+            { label: 'Alles löschen', gefahr: true, wert: true },
+          ],
+        });
+        if (wahl === 'sichern') { await sichern(); continue; }
+        if (wahl !== true) return;
+        break;
+      }
+      await tagebuchLeeren();
+      loescheProfil();
+      tagebuchZuruecksetzen();
+      await ctx.ladeEintraege();
+      ctx.profil = null;
+      ctx.navigiere('#start');
+    };
+    teile.push(h('section', { class: 'daten-geraet', 'aria-label': 'Daten auf diesem Gerät' },
+      h('h2', { class: 'abschnitt-titel', text: 'Daten auf diesem Gerät' }),
+      h('div', { class: 'zeile' },
+        h('button', { class: 'knopf knopf-text knopf-gefahr', type: 'button', text: 'Profil zurücksetzen', onclick: zuruecksetzen }),
+        h('button', { class: 'knopf knopf-text knopf-gefahr', type: 'button', text: 'Alle Daten löschen', onclick: allesLoeschen }))));
   }
   return teile;
 }
