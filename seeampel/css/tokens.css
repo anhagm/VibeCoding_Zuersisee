@@ -37,8 +37,8 @@
   /* Text auf dem See; beim Veto überschrieben (siehe unten) */
   --held-text: var(--text);
   --held-neben: var(--auf-see);
-  --held-link: var(--primaer);
-  --held-warn: var(--warnung);
+  --held-link: #114F66;          /* dunkler als --primaer, damit es auf dem See 4.5:1 erreicht */
+  --held-warn: #8A3207;
 
   --schrift: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --stimme: 'Fraunces', Georgia, 'Times New Roman', serif;
@@ -56,6 +56,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --held-link: #6FC0DE;
+    --held-warn: #FF9A6B;
     --text: #E8F0F2;
     --nebentext: #9DB0B7;
     --auf-see: #B9C8CE;
@@ -76,8 +78,12 @@
 
 /* Veto: dunkles Gewitterwasser, in hell und dunkel. Nur die Warnung leuchtet. */
 body.veto {
+  --karte: rgba(255, 255, 255, .93);
   --held-text: #F1F5F7;
   --held-neben: #C9D3D8;
   --held-link: #9FD8EC;
   --held-warn: #FFB08A;
+}
+@media (prefers-color-scheme: dark) {
+  body.veto { --karte: rgba(8, 18, 22, .72); }
 }

@@ -18,7 +18,7 @@ export function kalender({ heute, gewaehlt, mitEintrag, onWahl }) {
     const vor = h('button', { class: 'knopf knopf-text', type: 'button', 'aria-label': 'Vorheriger Monat', onclick: () => { monat--; if (monat < 1) { monat = 12; jahr--; } render(); } }, ICON.links());
     const nach = h('button', { class: 'knopf knopf-text', type: 'button', 'aria-label': 'Nächster Monat', disabled: istAktuell, onclick: () => { monat++; if (monat > 12) { monat = 1; jahr++; } render(); } }, ICON.rechts());
 
-    const raster = h('div', { class: 'kalender-raster', role: 'grid' }, WT.map((w) => h('div', { class: 'kalender-wt', 'aria-hidden': 'true', text: w })));
+    const raster = h('div', { class: 'kalender-raster' }, WT.map((w) => h('div', { class: 'kalender-wt', 'aria-hidden': 'true', text: w })));
     const erster = `${jahr}-${zwei(monat)}-01`;
     for (let i = 0; i < wochentag(erster); i++) raster.append(h('div'));
     const tage = new Date(Date.UTC(jahr, monat, 0)).getUTCDate();

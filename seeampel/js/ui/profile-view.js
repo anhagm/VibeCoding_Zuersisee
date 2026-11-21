@@ -149,7 +149,7 @@ export function profilAnsicht(ctx) {
 
   if (!erststart) {
     const datei = h('input', {
-      type: 'file', accept: 'application/json,.json', class: 'visuell-versteckt', tabindex: '-1',
+      type: 'file', accept: 'application/json,.json', class: 'visuell-versteckt', tabindex: '-1', 'aria-label': 'Sicherung importieren',
       onchange: async () => {
         const f = datei.files[0];
         datei.value = '';

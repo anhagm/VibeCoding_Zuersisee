@@ -93,3 +93,12 @@ test('Wohlfühlbereiche der Schwimmtypen', () => {
   assert.deepEqual(bereiche(23, 'mittel'), { ideal: [22, 24], gut: [19, 27] });
   assert.deepEqual(bereiche(25, 'eng'), { ideal: [24, 26], gut: [22, 28] });
 });
+
+test('Begründung nennt nur Faktoren, die die Sterne verändert haben', () => {
+  const jetzt = '2026-11-21T11:00';
+  const p = { stunden: stunden(jetzt), aktuell: { bewoelkung: 90, tag: true } };
+  // Echter Fall vom 21.11.: Wasser 10.7°, Luft 7.7° – die Grundwertung ist schon 1 Stern, die Luft ändert nichts.
+  assert.equal(rate({ wasser: 10.7, luft: 7.7, windKmh: 7, boeenKmh: 13 }, p, suenneler, jetzt).satz.text, 'Wasser 11° – 12° kälter als deine Lieblingstemperatur');
+  // Bei 19° kostet die kalte Luft einen halben Stern: dann wird sie genannt.
+  assert.equal(rate({ wasser: 19, luft: 8, windKmh: 7, boeenKmh: 13 }, p, suenneler, jetzt).satz.text, 'Wasser 19°, aber Luft nur 8°');
+});

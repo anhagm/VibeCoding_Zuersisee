@@ -16,7 +16,6 @@ function spalte({ werte, label, onChange }) {
       it.classList.toggle('aktiv', i === index);
       it.setAttribute('aria-selected', i === index ? 'true' : 'false');
     });
-    el.setAttribute('aria-valuetext', zwei(werte[index]));
   };
 
   function setze(i, sanft = false) {

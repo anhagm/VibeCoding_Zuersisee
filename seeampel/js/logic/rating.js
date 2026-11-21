@@ -57,10 +57,13 @@ export function bewerte({ wasser, luft, windKmh, bewoelkung, tag }, profil) {
   if (kalt) wert -= 0.5;
   if (wind) wert -= 1;
 
+  const runde = (x) => halbeSterne(klemmen(x, 1, 5));
   return {
-    sterne: halbeSterne(klemmen(wert, 1, 5)),
+    sterne: runde(wert),
     basis,
     mods: { warm, sonne, kalt, wind },
+    ohneWind: runde(wert + (wind ? 1 : 0)),
+    ohneKalt: runde(wert + (kalt ? 0.5 : 0)),
   };
 }
 
@@ -107,8 +110,9 @@ export function begruendung({ wasser, luft, windKmh }, ergebnis, profil) {
   const F = profil.lieblingstemperatur;
   const { mods, basis } = ergebnis;
 
-  if (mods.wind) return { text: `Wasser ${w}°, aber Wind mit ${ganz(windKmh)} km/h`, prognose: false };
-  if (mods.kalt) return { text: `Wasser ${w}°, aber Luft nur ${ganz(luft)}°`, prognose: false };
+  // Wind und kalte Luft sind nur entscheidend, wenn sie die Sterne tatsächlich verändert haben.
+  if (mods.wind && ergebnis.ohneWind > ergebnis.sterne) return { text: `Wasser ${w}°, aber Wind mit ${ganz(windKmh)} km/h`, prognose: false };
+  if (mods.kalt && ergebnis.ohneKalt > ergebnis.sterne) return { text: `Wasser ${w}°, aber Luft nur ${ganz(luft)}°`, prognose: false };
   if (basis >= 5) {
     return w === F
       ? { text: `Wasser ${w}° – genau deine Lieblingstemperatur`, prognose: false }

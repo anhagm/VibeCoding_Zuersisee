@@ -63,3 +63,9 @@ test('Fenster respektiert das Veto der Folgestunden', () => {
   const r = besteZeitfenster(20, s, profil, '2026-07-01T10:00');
   assert.equal(r.von, 16);
 });
+
+test('Kein «bestes Fenster» mit nur 1 Stern', () => {
+  const r = besteZeitfenster(10, tag({}), profil, '2026-07-01T08:00');
+  assert.equal(r.art, 'schlecht');
+  assert.match(r.text, /1 Stern/);
+});

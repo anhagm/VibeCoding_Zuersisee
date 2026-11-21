@@ -1,6 +1,7 @@
 // Proxy für die Tecdottir-API (Wasserschutzpolizei Zürich), gegen CORS und mit kurzem Cache.
 // GET /api/messung?station=tiefenbrunnen          → neueste Messung
-// GET /api/messung?station=mythenquai&zeit=ISO    → Messung, die dem Zeitpunkt am nächsten liegt (±60 min)
+// GET /api/messung?station=mythenquai&zeit=ISO    → Messung, die dem Zeitpunkt am nächsten liegt (±3 h,
+//                                                  weil die Daten mit 2–3 h Verzögerung ankommen)
 
 const BASIS = 'https://tecdottir.metaodi.ch/measurements';
 const STATIONEN = new Set(['tiefenbrunnen', 'mythenquai']);
@@ -78,7 +79,7 @@ export default async function handler(req, res) {
         const d = Math.abs(z.getTime() - ziel.getTime());
         if (d < abstand) { abstand = d; best = e; }
       }
-      if (!best || abstand > 60 * 60e3) {
+      if (!best || abstand > 3 * 60 * 60e3) {
         res.status(404).json({ error: 'Keine Messung in der Nähe dieses Zeitpunkts' });
         return;
       }

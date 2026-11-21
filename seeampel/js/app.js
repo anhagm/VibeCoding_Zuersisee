@@ -128,7 +128,7 @@ function profilName() {
 
 function kopf(r) {
   const titel = h('div', { class: 'kopf-titel' },
-    h('span', { class: 'wortmarke', text: 'Seeampel' }),
+    h(r === 'start' ? 'h1' : 'span', { class: 'wortmarke', text: 'Seeampel' }),
     ctx.profil ? h('span', { class: 'kopf-ort', text: STATIONEN[ctx.ansichtStation].name }) : null);
   const name = ctx.profil ? profilName() : '';
   const aktionen = ctx.profil
