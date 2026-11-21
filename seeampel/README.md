@@ -45,6 +45,15 @@ Die Bewertungslogik in `js/logic/` besteht aus reinen Funktionen ohne DOM und oh
 - Tagebucheinträge erhalten die Messwerte der Station zum Startzeitpunkt des Schwumms (über `/api/messung?station=…&zeit=…`, ±60 min), nicht die aktuellen. Gibt es keine, wird der Eintrag ohne Messwerte gespeichert.
 - Kennzahlen über dem Diagramm beziehen sich auf die letzten acht Wochen.
 
+## Widget (Scriptable, iOS)
+
+`widget/Seeampel.js` ist das Homescreen- und Sperrbildschirm-Widget für die App Scriptable.
+Es verwendet dieselbe Bewertung, dieselben Datenquellen (eigener Proxy `/api/messung`, Open-Meteo ICON-CH)
+und dieselben Farben wie die PWA. `tests/widget.test.js` prüft mit 3000 zufälligen Wetterlagen und allen
+Testzuständen, dass Widget und PWA identisch bewerten. Profil, Badestelle, Name und Testzustand
+werden über den Widget-Parameter gesetzt, zum Beispiel `Isbär, Mythenquai, Anna` oder `test=veto_gewitter`.
+Ohne Netz zeigt das Widget die letzten Daten bis 12 Stunden, markiert als «Offline».
+
 ## Deployment
 
 Repository-Wurzel = dieser Ordner, Vercel-Preset "Other", keine Build-Einstellungen. Nach jeder Änderung an App-Dateien in `sw.js` die `VERSION` erhöhen.
