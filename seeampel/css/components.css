@@ -325,3 +325,18 @@ section.stapel > .nebentext { color: var(--held-neben); }
 .faq[open] summary svg { transform: rotate(180deg); }
 .faq summary:focus-visible { outline: 3px solid var(--primaer); outline-offset: -3px; border-radius: var(--radius); }
 .faq-antwort { padding: 0 16px 16px; display: grid; gap: 10px; font-size: .9375rem; line-height: 1.5; max-width: 62ch; }
+
+/* Strecke: Tempo während der Eingabe und Schätzung */
+.tempo-hinweis { font-size: var(--klein); color: var(--nebentext); min-height: 1.3em; font-variant-numeric: tabular-nums; }
+.tempo-hinweis.warnung { color: var(--warnung); font-weight: 650; }
+.schaetz-link { justify-self: start; margin-left: -10px; }
+.schaetz-box { display: grid; gap: 8px; }
+.schaetz-box[hidden] { display: none; }
+.schaetz-optionen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.schaetz-option {
+  display: grid; gap: 2px; align-content: start; text-align: left; min-height: 64px; padding: 10px 12px;
+  border-radius: var(--radius-klein); border: 1.5px solid var(--karte-rand); background: var(--karte);
+}
+.schaetz-option strong { font-weight: 700; }
+.schaetz-option span { font-size: var(--sehr-klein); color: var(--nebentext); line-height: 1.3; }
+.schaetz-option[aria-pressed="true"] { border-color: var(--primaer); box-shadow: inset 0 0 0 1px var(--primaer); }

@@ -50,3 +50,20 @@ export const TAGEBUCH = {
 };
 
 export const LADEN = { minMs: 800, maxMs: 1500, fadeMs: 400 };
+
+// Tempo im See, Richtwerte in km/h (nicht wissenschaftlich geprüft, mit Schwimmenden abgleichen).
+// Dieselbe Einteilung dient zum Schätzen der Strecke und zur Anzeige während der Eingabe.
+export const TEMPO = {
+  schaetzen: {
+    gemuetlich: { label: 'Gemütlich', text: 'Brust, Kopf über Wasser, mit Pausen', kmh: 2 },
+    zuegig: { label: 'Zügig', text: 'Gleichmässig, ohne Pausen', kmh: 3 },
+    sportlich: { label: 'Sportlich', text: 'Kraul, Training', kmh: 4 },
+  },
+  klassen: [
+    { bis: 1.5, text: 'sehr gemütliches Tempo' },
+    { bis: 2.5, text: 'gemütliches Tempo' },
+    { bis: 3.5, text: 'zügiges Tempo' },
+    { bis: 5, text: 'sportliches Tempo' },
+    { bis: 6, text: 'Wettkampftempo' },
+  ],
+};

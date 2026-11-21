@@ -19,15 +19,15 @@ export function csvFeld(wert) {
 
 // Tagebuch als CSV für Excel, Numbers und Google Sheets: Semikolon, UTF-8 mit BOM, Punkt als Dezimalzeichen.
 export function tagebuchCsv(eintraege, stationName = (id) => id) {
-  const kopf = ['Datum', 'Von', 'Bis', 'Dauer (min)', 'Strecke (km)', 'Tempo (min/100 m, dezimal)', 'Badestelle', 'Wasser (°C)', 'Luft (°C)', 'Wind (km/h)', 'Kommentar'];
+  const kopf = ['Datum', 'Von', 'Bis', 'Dauer (min)', 'Strecke (km)', 'Strecke geschätzt', 'Tempo (min/100 m, dezimal)', 'Badestelle', 'Wasser (°C)', 'Luft (°C)', 'Wind (km/h)', 'Kommentar'];
   const sortiert = [...eintraege].sort((a, b) => a.datum.localeCompare(b.datum) || a.startMin - b.startMin);
   const zeilen = sortiert.map((e) => {
     const dauer = e.endeMin - e.startMin;
-    const pace = e.strecke > 0 ? dauer / (e.strecke * 10) : null;
+    const pace = e.strecke > 0 && !e.geschaetzt ? dauer / (e.strecke * 10) : null;
     const mw = e.messwerte || {};
     const r1 = (x) => (x == null ? '' : (Math.round(x * 10) / 10).toFixed(1));
     return [
-      e.datum, zeit(e.startMin), zeit(e.endeMin), dauer, e.strecke,
+      e.datum, zeit(e.startMin), zeit(e.endeMin), dauer, e.strecke, e.geschaetzt ? 'ja' : 'nein',
       pace == null ? '' : pace.toFixed(2), stationName(e.station),
       r1(mw.wasser), r1(mw.luft), mw.windKmh == null ? '' : Math.round(mw.windKmh), e.kommentar || '',
     ].map(csvFeld).join(';');

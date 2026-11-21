@@ -1,7 +1,7 @@
 // Schwimmtagebuch: Kalender, Scroll-Räder, Strecke, Kommentar, Liste der Einträge.
 
 import { h, ICON, leeren } from '../util/dom.js';
-import { STATIONEN, TAGEBUCH } from '../config.js';
+import { STATIONEN, TAGEBUCH, TEMPO } from '../config.js';
 import { pruefeEintrag } from '../logic/diary-validation.js';
 import { speichereEintrag, loescheEintrag, neueId } from '../storage/diary-db.js';
 import { kalender } from './calendar.js';
@@ -9,7 +9,8 @@ import { zeitRad } from './time-wheel.js';
 import { popup, bestaetigen } from './modal.js';
 import { datumLang, datumKurz, km, zahl, ganz, monatTitel } from '../util/format.js';
 import { minutenZuText, lokalZuDate } from '../util/zeit.js';
-import { paceText, paceEintrag } from '../logic/diary-stats.js';
+import { paceText, paceEintrag, schaetzeStrecke, tempoHinweis } from '../logic/diary-stats.js';
+import { parseStrecke } from '../logic/diary-validation.js';
 
 // Bleibt über Neuzeichnen hinweg erhalten.
 let zustand = null;
@@ -21,7 +22,7 @@ function standardZeiten(ctx) {
 }
 
 function leererZustand(ctx) {
-  return { datum: ctx.heute(), ...standardZeiten(ctx), strecke: '', kommentar: '', bearbeiteId: null };
+  return { datum: ctx.heute(), ...standardZeiten(ctx), strecke: '', kommentar: '', bearbeiteId: null, schaetzArt: null };
 }
 
 export function tagebuchZuruecksetzen() {
@@ -41,14 +42,62 @@ export function tagebuchAnsicht(ctx) {
     onWahl: (d) => { zustand.datum = d; titelDatum.textContent = datumLang(d); zeichneListe(); },
   });
 
-  const start = zeitRad({ label: 'Von', minuten: zustand.startMin, onChange: (m) => { zustand.startMin = m; } });
-  const ende = zeitRad({ label: 'Bis', minuten: zustand.endeMin, onChange: (m) => { zustand.endeMin = m; } });
+  const start = zeitRad({ label: 'Von', minuten: zustand.startMin, onChange: (m) => { zustand.startMin = m; zeitGeaendert(); } });
+  const ende = zeitRad({ label: 'Bis', minuten: zustand.endeMin, onChange: (m) => { zustand.endeMin = m; zeitGeaendert(); } });
 
+  // Strecke: selbst eingeben oder aus Dauer und Schwimmart schätzen lassen.
   const strecke = h('input', {
     class: 'eingabe', id: 'strecke', type: 'text', inputmode: 'decimal', autocomplete: 'off',
-    placeholder: 'z. B. 1,5', value: zustand.strecke,
-    oninput: () => { zustand.strecke = strecke.value; },
+    placeholder: 'z. B. 1,5', value: zustand.strecke, 'aria-describedby': 'tempo-hinweis',
+    oninput: () => { zustand.strecke = strecke.value; zustand.schaetzArt = null; aktualisiereStrecke(); },
   });
+  const tempoZeile = h('p', { class: 'tempo-hinweis', id: 'tempo-hinweis', 'aria-live': 'polite' });
+  const schaetzKnoepfe = Object.entries(TEMPO.schaetzen).map(([id, t]) => h('button', {
+    class: 'schaetz-option', type: 'button', 'aria-pressed': 'false',
+    onclick: () => { zustand.schaetzArt = id; schaetzen(); },
+  }, h('strong', { text: t.label }), h('span', { text: t.text })));
+  const schaetzBox = h('div', { class: 'schaetz-box', hidden: true, role: 'group', 'aria-label': 'Strecke schätzen' },
+    h('span', { class: 'feld-label', text: 'Wie bist du geschwommen?' }),
+    h('div', { class: 'schaetz-optionen' }, schaetzKnoepfe));
+  const schaetzLink = h('button', {
+    class: 'knopf knopf-text schaetz-link', type: 'button', 'aria-expanded': 'false',
+    onclick: () => {
+      const auf = schaetzBox.hidden;
+      schaetzBox.hidden = !auf;
+      schaetzLink.setAttribute('aria-expanded', auf ? 'true' : 'false');
+    },
+  }, 'Weiss ich nicht – schätzen');
+
+  const dauer = () => zustand.endeMin - zustand.startMin;
+
+  function schaetzen() {
+    const km = schaetzeStrecke(dauer(), zustand.schaetzArt);
+    if (km == null) {
+      tempoZeile.textContent = 'Wähle zuerst, von wann bis wann du geschwommen bist.';
+      tempoZeile.classList.remove('warnung');
+      return;
+    }
+    zustand.strecke = String(km).replace('.', ',');
+    strecke.value = zustand.strecke;
+    aktualisiereStrecke();
+  }
+
+  function zeitGeaendert() {
+    if (zustand.schaetzArt) schaetzen();
+    else aktualisiereStrecke();
+  }
+
+  function aktualisiereStrecke() {
+    schaetzKnoepfe.forEach((k, i) => k.setAttribute('aria-pressed', Object.keys(TEMPO.schaetzen)[i] === zustand.schaetzArt ? 'true' : 'false'));
+    const p = parseStrecke(zustand.strecke);
+    const hinweis = p.wert ? tempoHinweis(p.wert, dauer()) : null;
+    tempoZeile.classList.toggle('warnung', Boolean(hinweis?.warnung));
+    if (!hinweis) { tempoZeile.textContent = ''; return; }
+    const basis = `≈ ${zahl(Math.round(hinweis.kmh * 10) / 10)} km/h · ${paceText(hinweis.pace)} min pro 100 m · ${hinweis.text}`;
+    tempoZeile.textContent = zustand.schaetzArt
+      ? `Geschätzt aus ${dauer()} min ${TEMPO.schaetzen[zustand.schaetzArt].label.toLowerCase()}. ${basis}`
+      : basis;
+  }
 
   const zaehler = h('p', { class: 'zeichen-zaehler', 'aria-live': 'polite' });
   const kommentar = h('textarea', {
@@ -72,6 +121,9 @@ export function tagebuchAnsicht(ctx) {
     start.setze(zustand.startMin);
     ende.setze(zustand.endeMin);
     strecke.value = zustand.strecke;
+    schaetzBox.hidden = !zustand.schaetzArt;
+    schaetzLink.setAttribute('aria-expanded', zustand.schaetzArt ? 'true' : 'false');
+    aktualisiereStrecke();
     kommentar.value = zustand.kommentar;
     zaehle();
     speicherKnopf.textContent = zustand.bearbeiteId ? 'Änderung speichern' : 'Speichern';
@@ -106,6 +158,8 @@ export function tagebuchAnsicht(ctx) {
       startMin: zustand.startMin,
       endeMin: zustand.endeMin,
       strecke: r.strecke,
+      geschaetzt: Boolean(zustand.schaetzArt),
+      schaetzArt: zustand.schaetzArt || null,
       station,
       kommentar: zustand.kommentar.trim().slice(0, TAGEBUCH.maxKommentar),
       messwerte: messwerte ? { wasser: messwerte.wasser, luft: messwerte.luft, windKmh: messwerte.windKmh, zeit: new Date(messwerte.zeit).toISOString() } : null,
@@ -133,18 +187,18 @@ export function tagebuchAnsicht(ctx) {
     }
     for (const e of liste) {
       const mw = e.messwerte;
-      const tempo = ctx.profil.art === 'trainieren' ? `${paceText(paceEintrag(e))} min/100 m` : null;
+      const tempo = e.geschaetzt ? 'Strecke geschätzt' : (ctx.profil.art === 'trainieren' ? `${paceText(paceEintrag(e))} min/100 m` : null);
       const meta = [STATIONEN[e.station]?.name, tempo, mw ? `Wasser ${zahl(mw.wasser)}°` : null, mw ? `Luft ${ganz(mw.luft)}°` : null, mw ? null : 'ohne Messwerte']
         .filter(Boolean).join(' · ');
       listeBox.append(h('article', { class: `karte karte-flach eintrag${e.id === zustand.bearbeiteId ? ' in-bearbeitung' : ''}` },
         h('div', {},
-          h('p', { class: 'eintrag-titel', text: `${datumKurz(e.datum)} · ${minutenZuText(e.startMin)}–${minutenZuText(e.endeMin)} · ${km(e.strecke)} km` }),
+          h('p', { class: 'eintrag-titel', text: `${datumKurz(e.datum)} · ${minutenZuText(e.startMin)}–${minutenZuText(e.endeMin)} · ${e.geschaetzt ? '≈ ' : ''}${km(e.strecke)} km` }),
           h('p', { class: 'eintrag-meta', text: meta })),
         h('div', { class: 'eintrag-aktionen' },
           h('button', {
             class: 'knopf knopf-text', type: 'button', text: 'Bearbeiten', 'aria-label': `Eintrag vom ${datumLang(e.datum)} bearbeiten`,
             onclick: () => {
-              zustand = { datum: e.datum, startMin: e.startMin, endeMin: e.endeMin, strecke: String(e.strecke).replace('.', ','), kommentar: e.kommentar || '', bearbeiteId: e.id };
+              zustand = { datum: e.datum, startMin: e.startMin, endeMin: e.endeMin, strecke: String(e.strecke).replace('.', ','), kommentar: e.kommentar || '', bearbeiteId: e.id, schaetzArt: e.geschaetzt ? e.schaetzArt : null };
               formularFuellen();
               zeichneListe();
               status.textContent = 'Eintrag wird bearbeitet';
@@ -177,7 +231,10 @@ export function tagebuchAnsicht(ctx) {
     h('div', { class: 'zeitwahl' }, start.el, ende.el),
     h('div', { class: 'feld' },
       h('label', { class: 'feld-label', for: 'strecke', text: 'Strecke in km' }),
-      strecke),
+      strecke,
+      tempoZeile,
+      schaetzLink,
+      schaetzBox),
     h('div', { class: 'feld' },
       h('label', { class: 'feld-label', for: 'kommentar', text: 'Kommentar (optional)' }),
       kommentar, zaehler),
@@ -185,6 +242,8 @@ export function tagebuchAnsicht(ctx) {
     status);
 
   titelDatum.textContent = datumLang(zustand.datum);
+  if (zustand.schaetzArt) { schaetzBox.hidden = false; schaetzLink.setAttribute('aria-expanded', 'true'); }
+  aktualisiereStrecke();
   speicherKnopf.textContent = zustand.bearbeiteId ? 'Änderung speichern' : 'Speichern';
   zeichneListe();
 
