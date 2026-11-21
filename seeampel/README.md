@@ -50,8 +50,10 @@ Die Bewertungslogik in `js/logic/` besteht aus reinen Funktionen ohne DOM und oh
 `widget/Seeampel.js` ist das Homescreen- und Sperrbildschirm-Widget für die App Scriptable.
 Es verwendet dieselbe Bewertung, dieselben Datenquellen (eigener Proxy `/api/messung`, Open-Meteo ICON-CH)
 und dieselben Farben wie die PWA. `tests/widget.test.js` prüft mit 3000 zufälligen Wetterlagen und allen
-Testzuständen, dass Widget und PWA identisch bewerten. Profil, Badestelle, Name und Testzustand
-werden über den Widget-Parameter gesetzt, zum Beispiel `Isbär, Mythenquai, Anna` oder `test=veto_gewitter`.
+Testzuständen, dass Widget und PWA identisch bewerten. Beim ersten Start in Scriptable führt das Skript
+durch Name, Schwimmtyp und Badestelle und speichert das Profil im iOS-Schlüsselbund; ein Widget ohne Profil
+zeigt «Profil einrichten» und startet die Einrichtung per Tipp. Der Widget-Parameter überschreibt das Profil
+nur für ein einzelnes Widget, zum Beispiel `Mythenquai` oder `test=veto_gewitter`.
 Ohne Netz zeigt das Widget die letzten Daten bis 12 Stunden, markiert als «Offline».
 
 ## Deployment

@@ -15,18 +15,22 @@
 // 1. Scriptable installieren, neues Skript, diesen Text einfügen, «Seeampel» nennen.
 // 2. Auf dem Homescreen ein Scriptable-Widget hinzufügen (klein, mittel oder gross),
 //    lange drücken → Widget bearbeiten → Script: Seeampel.
-// 3. Feld «Parameter» (optional), Teile mit Komma trennen, Reihenfolge egal:
+// 3. Skript einmal in Scriptable starten: Es führt durch dein Profil (Name, Schwimmtyp,
+//    Badestelle) und speichert es auf dem iPhone. Ein Widget ohne Profil zeigt
+//    «Profil einrichten», ein Tipp darauf startet die Einrichtung.
+// 4. Feld «Parameter» (optional, überschreibt das Profil nur für dieses eine Widget),
+//    Teile mit Komma trennen, Reihenfolge egal:
 //      Sünneler                     Profil: Isbär, Sünneler oder Gfrörli
 //      21 eng                       eigene Lieblingstemperatur und Toleranz (eng, mittel, weit)
 //      Mythenquai                   Badestelle (Standard: Tiefenbrunnen)
 //      Anna                         Name, wie in der PWA («für Anna»)
 //      test=veto_gewitter           Testzustand statt echter Daten
 //    Beispiel: «Isbär, Mythenquai, Anna»
-// 4. Im Sperrbildschirm funktionieren die drei Formen (rund, rechteckig, Zeile) auch.
+// 5. Im Sperrbildschirm funktionieren die drei Formen (rund, rechteckig, Zeile) auch.
 //
 // Testzustände: normal, sonne, perfekt, wind, kalt, veto_gewitter, veto_sturm,
 // veto_boeen, ungueltig, veraltet, offline, besser
-// Startest du das Skript in der App, kannst du Grösse und Testzustand auswählen.
+// In der App: Vorschau mit Grösse und Testzustand, Profil ändern oder löschen.
 // ============================================================
 
 const APP_URL = 'https://seeampel.vercel.app/';
@@ -36,10 +40,14 @@ const STANDARD = { profil: 'suenneler', station: 'tiefenbrunnen', name: null };
 // KONFIGURATION (identisch mit js/config.js)
 // ============================================================
 const TOLERANZ = { eng: 2, mittel: 3, weit: 4 };
+const TOLERANZ_LABEL = { eng: 'Eng', mittel: 'Mittel', weit: 'Weit' };
+const TEMP_MIN = 4;
+const TEMP_MAX = 28;
+const NAME_MAX = 30;
 const PRESETS = {
-  isbaer: { name: 'Isbär', lieblingstemperatur: 7, toleranz: 'weit' },
-  suenneler: { name: 'Sünneler', lieblingstemperatur: 23, toleranz: 'mittel' },
-  gfroerli: { name: 'Gfrörli', lieblingstemperatur: 25, toleranz: 'eng' },
+  isbaer: { name: 'Isbär', lieblingstemperatur: 7, toleranz: 'weit', beschreibung: 'Eisbaden im Winter – je kälter, desto besser.' },
+  suenneler: { name: 'Sünneler', lieblingstemperatur: 23, toleranz: 'mittel', beschreibung: 'Schwimmt im Sommer, wenn das Wasser angenehm ist.' },
+  gfroerli: { name: 'Gfrörli', lieblingstemperatur: 25, toleranz: 'eng', beschreibung: 'Geht nur bei richtig warmem Wasser hinein.' },
 };
 const SCHWELLEN = {
   luftWarm: 22, bewoelkungSonne: 30, luftKalt: 12, kaltSchwimmerBis: 12,
@@ -341,8 +349,23 @@ function seeVerlauf(zustand) {
 const ohneUmlaut = (s) => s.toLowerCase().trim()
   .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue');
 
-function leseParameter(text) {
-  const ein = { profil: { ...PRESETS[STANDARD.profil] }, station: STANDARD.station, name: STANDARD.name, test: null, warnung: null };
+// Wohlfühlbereiche wie in der PWA (js/logic/rating.js bereiche).
+function bereiche(F, toleranz) {
+  const T = TOLERANZ[toleranz];
+  const k = (x) => klemmen(x, TEMP_MIN, TEMP_MAX);
+  return { ideal: [k(F - 1), k(F + 1)], gut: [k(F - 1 - T), k(F + 1 + T)] };
+}
+
+function sauberName(roh) {
+  const n = String(roh || '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
+  return n || null;
+}
+
+// Gespeichertes Profil (Grundlage) plus Parameter des einzelnen Widgets (überschreibt).
+function leseParameter(text, gespeichert = null) {
+  const ein = gespeichert
+    ? { profil: { ...gespeichert.profil }, station: gespeichert.station, name: gespeichert.name, test: null, warnung: null, eingerichtet: true }
+    : { profil: { ...PRESETS[STANDARD.profil] }, station: STANDARD.station, name: STANDARD.name, test: null, warnung: null, eingerichtet: false };
   if (!text) return ein;
   for (const roh of String(text).split(/[,;]/)) {
     const teil = roh.trim();
@@ -351,12 +374,13 @@ function leseParameter(text) {
     const key = k.replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u');
     const preset = Object.keys(PRESETS).find((p) => p === k || p.replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u') === key);
     const eigen = k.match(/^(\d{1,2})(?:\s*°?c?)?(?:\s+(eng|mittel|weit))?$/);
-    if (k.startsWith('test=')) ein.test = k.slice(5);
-    else if (preset) ein.profil = { ...PRESETS[preset] };
+    if (k.startsWith('test=')) { ein.test = k.slice(5); ein.eingerichtet = true; }
+    else if (preset) { ein.profil = { ...PRESETS[preset] }; ein.eingerichtet = true; }
     else if (STATIONEN[k]) ein.station = k;
     else if (eigen) {
       const F = klemmen(Number(eigen[1]), 4, 28);
       ein.profil = { name: `${F}°`, lieblingstemperatur: F, toleranz: eigen[2] || 'mittel' };
+      ein.eingerichtet = true;
     } else if (/^[a-zà-ÿ' -]{1,30}$/i.test(teil)) ein.name = teil.charAt(0).toUpperCase() + teil.slice(1);
     else ein.warnung = `Parameter «${teil}» nicht erkannt`;
   }
@@ -564,6 +588,7 @@ function sterne(stack, wert, groesse, f) {
 }
 
 function fuerWen(ein) {
+  if (ein.profil.name === 'Eigenes Profil') ein = { ...ein, profil: { ...ein.profil, name: `${ein.profil.lieblingstemperatur}°` } };
   return ein.name ? `für ${ein.name} · ${ein.profil.name}` : `für dich · ${ein.profil.name}`;
 }
 
@@ -689,6 +714,7 @@ function baueWidget(familie, daten, ein) {
   w.url = APP_URL;
   w.refreshAfterDate = new Date(Date.now() + 15 * 60000);
 
+  if (!ein.eingerichtet) return ohneProfil(w, familie);
   if (familie.startsWith('accessory')) return sperrbildschirm(w, familie, haupt);
 
   hintergrund(w, haupt);
@@ -739,6 +765,40 @@ function baueWidget(familie, daten, ein) {
   return w;
 }
 
+// Noch kein Profil: keine Sterne für ein fremdes Profil, sondern der Weg zur Einrichtung.
+function ohneProfil(w, familie) {
+  w.url = `${URLScheme.forRunningScript()}?aktion=profil`;
+  w.refreshAfterDate = new Date(Date.now() + 5 * 60000);
+  const weiss = Color.white();
+  if (familie === 'accessoryInline') { text(w, 'Seeampel · Profil einrichten', SCHRIFT.normal(12), weiss); return w; }
+  if (familie === 'accessoryCircular') {
+    w.addAccessoryWidgetBackground = true;
+    const z = w.addStack(); z.addSpacer(); symbol(z, 'person.crop.circle.badge.plus', 22, weiss); z.addSpacer();
+    return w;
+  }
+  if (familie === 'accessoryRectangular') {
+    text(w, 'Seeampel', SCHRIFT.fett(12), weiss);
+    text(w, 'Tippen, um dein Profil einzurichten', SCHRIFT.normal(11), weiss, 2);
+    return w;
+  }
+  hintergrund(w, null);
+  const f = farben(false);
+  w.setPadding(14, 14, 12, 14);
+  text(w, 'Seeampel', SCHRIFT.marke(familie === 'small' ? 15 : 17), f.text);
+  w.addSpacer(6);
+  text(w, 'Lohnt sich Schwimmen im Zürichsee – für dich?', SCHRIFT.normal(familie === 'small' ? 11 : 12), f.text, 3);
+  w.addSpacer();
+  const knopf = w.addStack();
+  knopf.setPadding(6, 10, 6, 10);
+  knopf.cornerRadius = 12;
+  knopf.backgroundColor = f.stern;
+  knopf.centerAlignContent();
+  symbol(knopf, 'person.crop.circle.badge.plus', 13, dyn('#FFFFFF', '#0B1A20'));
+  knopf.addSpacer(5);
+  text(knopf, 'Profil einrichten', SCHRIFT.fett(12), dyn('#FFFFFF', '#0B1A20'));
+  return w;
+}
+
 // Sperrbildschirm: einfarbig, iOS färbt selbst ein.
 function sperrbildschirm(w, familie, r) {
   const weiss = Color.white();
@@ -780,6 +840,119 @@ function sperrbildschirm(w, familie, r) {
 }
 
 // ============================================================
+// PROFIL SPEICHERN UND EINRICHTEN (nur Scriptable)
+// Das Widget kann das Profil der PWA nicht lesen (Safari und Scriptable haben
+// getrennte Speicher). Deshalb eine eigene, kurze Einrichtung mit denselben Typen.
+// ============================================================
+const PROFIL_KEY = 'seeampel.widget.profil.v1';
+
+function leseProfil() {
+  try {
+    if (!Keychain.contains(PROFIL_KEY)) return null;
+    const p = JSON.parse(Keychain.get(PROFIL_KEY));
+    const F = Number(p && p.profil && p.profil.lieblingstemperatur);
+    if (!Number.isFinite(F) || !TOLERANZ[p.profil.toleranz] || !STATIONEN[p.station]) return null;
+    return p;
+  } catch (e) { return null; }
+}
+
+function speichereProfil(p) { Keychain.set(PROFIL_KEY, JSON.stringify(p)); }
+function loescheProfil() { if (Keychain.contains(PROFIL_KEY)) Keychain.remove(PROFIL_KEY); }
+
+function profilZeile(p) {
+  return [p.name, `${p.profil.name} (${p.profil.lieblingstemperatur}°)`, STATIONEN[p.station].name].filter(Boolean).join(' · ');
+}
+
+async function frageName(alt) {
+  const a = new Alert();
+  a.title = 'Wie heisst du?';
+  a.message = 'Dein Vorname erscheint im Widget, zum Beispiel «für Anna». Du kannst das Feld auch leer lassen.';
+  a.addTextField('Vorname (freiwillig)', alt || '');
+  a.addAction('Weiter');
+  a.addCancelAction('Abbrechen');
+  if (await a.presentAlert() < 0) return undefined;
+  return sauberName(a.textFieldValue(0));
+}
+
+async function frageTyp(alt) {
+  const a = new Alert();
+  a.title = 'Welcher Schwimmtyp bist du?';
+  a.message = 'Die Sterne richten sich nach deiner Lieblingstemperatur im Wasser.\n\n' +
+    Object.values(PRESETS).map((p) => `${p.name} (${p.lieblingstemperatur}°): ${p.beschreibung}`).join('\n\n');
+  const keys = Object.keys(PRESETS);
+  keys.forEach((k) => a.addAction(`${PRESETS[k].name} · ${PRESETS[k].lieblingstemperatur}°${alt && alt.name === PRESETS[k].name ? '  ✓' : ''}`));
+  a.addAction('Eigene Lieblingstemperatur');
+  a.addCancelAction('Abbrechen');
+  const i = await a.presentSheet();
+  if (i < 0) return undefined;
+  if (i < keys.length) {
+    const { beschreibung, ...p } = PRESETS[keys[i]];
+    return p;
+  }
+  return frageEigenes(alt);
+}
+
+async function frageEigenes(alt) {
+  let hinweis = '';
+  let F = null;
+  while (F === null) {
+    const a = new Alert();
+    a.title = 'Deine Lieblingstemperatur';
+    a.message = `Bei welcher Wassertemperatur ist es für dich perfekt? Zahl zwischen ${TEMP_MIN} und ${TEMP_MAX} °C.${hinweis}`;
+    const feld = a.addTextField('z. B. 20', alt ? String(alt.lieblingstemperatur) : '');
+    feld.setNumberPadKeyboard();
+    a.addAction('Weiter');
+    a.addCancelAction('Abbrechen');
+    if (await a.presentAlert() < 0) return undefined;
+    const n = Number(String(a.textFieldValue(0)).replace(',', '.'));
+    if (Number.isFinite(n) && n >= TEMP_MIN && n <= TEMP_MAX) F = Math.round(n);
+    else hinweis = `\n\nBitte eine Zahl zwischen ${TEMP_MIN} und ${TEMP_MAX} eingeben.`;
+  }
+  const t = new Alert();
+  t.title = 'Wie viel Abweichung ist noch gut?';
+  const stufen = Object.keys(TOLERANZ);
+  t.message = 'Ab wann fühlt sich das Wasser für dich nicht mehr gut an?\n\n' + stufen.map((k) => {
+    const b = bereiche(F, k);
+    return `${TOLERANZ_LABEL[k]}: gut von ${b.gut[0]}° bis ${b.gut[1]}°`;
+  }).join('\n');
+  stufen.forEach((k) => t.addAction(TOLERANZ_LABEL[k]));
+  t.addCancelAction('Abbrechen');
+  const i = await t.presentSheet();
+  if (i < 0) return undefined;
+  return { name: `Eigenes Profil`, lieblingstemperatur: F, toleranz: stufen[i] };
+}
+
+async function frageStation(alt) {
+  const a = new Alert();
+  a.title = 'Wo schwimmst du meistens?';
+  a.message = 'Das Widget zeigt diese Badestelle gross. Die andere erscheint im mittleren und grossen Widget daneben.';
+  const ids = Object.keys(STATIONEN);
+  ids.forEach((id) => a.addAction(`${STATIONEN[id].name}${alt === id ? '  ✓' : ''}`));
+  a.addCancelAction('Abbrechen');
+  const i = await a.presentSheet();
+  return i < 0 ? undefined : ids[i];
+}
+
+// Gibt das gespeicherte Profil zurück oder null bei Abbruch.
+async function richteProfilEin(alt) {
+  const name = await frageName(alt && alt.name);
+  if (name === undefined) return null;
+  const profil = await frageTyp(alt && alt.profil);
+  if (!profil) return null;
+  const station = await frageStation(alt && alt.station);
+  if (!station) return null;
+  const p = { name, profil, station };
+  speichereProfil(p);
+  const a = new Alert();
+  a.title = 'Profil gespeichert';
+  a.message = `${profilZeile(p)}\n\nNoch kein Widget? Homescreen lange drücken, «Bearbeiten», «Widget hinzufügen», Scriptable wählen, dann beim Widget «Script: Seeampel».\n\nBestehende Widgets übernehmen das Profil, sobald iOS sie neu lädt. Das kann einige Minuten dauern.`;
+  a.addAction('Vorschau ansehen');
+  a.addCancelAction('Fertig');
+  p.vorschau = (await a.presentAlert()) === 0;
+  return p;
+}
+
+// ============================================================
 // START
 // ============================================================
 async function datenFuer(ein) {
@@ -813,26 +986,56 @@ async function auswahl(titel, optionen) {
   return i < 0 ? null : optionen[i];
 }
 
-async function main() {
-  const ein = leseParameter(args.widgetParameter);
-  if (config.runsInWidget || config.runsInAccessoryWidget) {
-    const daten = await datenFuer(ein);
-    Script.setWidget(baueWidget(config.widgetFamily || 'small', daten, ein));
-    Script.complete();
-    return;
-  }
-
-  // In der App: Vorschau mit Auswahl, praktisch für Screenshots aller Zustände.
+async function vorschau(ein) {
   const groesse = await auswahl('Seeampel · Vorschau', ['Klein', 'Mittel', 'Gross']);
-  if (!groesse) return Script.complete();
+  if (!groesse) return;
   const zustand = await auswahl('Daten', ['Echte Daten', ...Object.keys(SZENARIEN)]);
-  if (!zustand) return Script.complete();
+  if (!zustand) return;
   if (zustand !== 'Echte Daten') ein.test = zustand;
   const familie = { Klein: 'small', Mittel: 'medium', Gross: 'large' }[groesse];
   const w = baueWidget(familie, await datenFuer(ein), ein);
   if (familie === 'small') await w.presentSmall();
   else if (familie === 'medium') await w.presentMedium();
   else await w.presentLarge();
+}
+
+async function main() {
+  let gespeichert = leseProfil();
+  if (config.runsInWidget || config.runsInAccessoryWidget) {
+    const ein = leseParameter(args.widgetParameter, gespeichert);
+    const daten = ein.eingerichtet ? await datenFuer(ein) : {};
+    Script.setWidget(baueWidget(config.widgetFamily || 'small', daten, ein));
+    Script.complete();
+    return;
+  }
+
+  // In der App. Erster Start oder Tipp auf «Profil einrichten»: direkt zur Einrichtung.
+  const wunsch = args.queryParameters && args.queryParameters.aktion;
+  if (!gespeichert || wunsch === 'profil') {
+    const neu = await richteProfilEin(gespeichert);
+    if (neu && neu.vorschau) await vorschau(leseParameter(null, leseProfil()));
+    return Script.complete();
+  }
+
+  const a = new Alert();
+  a.title = 'Seeampel';
+  a.message = `Dein Profil: ${profilZeile(gespeichert)}`;
+  ['Vorschau ansehen', 'Profil ändern', 'Profil löschen'].forEach((x) => a.addAction(x));
+  a.addCancelAction('Schliessen');
+  const wahl = await a.presentSheet();
+  if (wahl === 0) await vorschau(leseParameter(null, gespeichert));
+  if (wahl === 1) {
+    const neu = await richteProfilEin(gespeichert);
+    if (neu && neu.vorschau) await vorschau(leseParameter(null, leseProfil()));
+  }
+  if (wahl === 2) {
+    const b = new Alert();
+    b.title = 'Profil löschen?';
+    b.message = 'Die Widgets zeigen danach wieder «Profil einrichten». Deine Daten in der PWA bleiben unberührt.';
+    b.addDestructiveAction('Löschen');
+    b.addCancelAction('Abbrechen');
+    if (await b.presentAlert() === 0) loescheProfil();
+  }
   Script.complete();
 }
 
@@ -840,5 +1043,5 @@ if (typeof Script !== 'undefined') {
   await main();
 } else if (typeof module !== 'undefined') {
   // Nur für die Tests mit Node: reine Funktionen freigeben.
-  module.exports = { rate, besteZeitfenster, bewerteStation, leseParameter, testDaten, seeVerlauf, lokalIso, vergleicheStellen, PRESETS, STATIONEN, SZENARIEN };
+  module.exports = { bereiche, sauberName, rate, besteZeitfenster, bewerteStation, leseParameter, testDaten, seeVerlauf, lokalIso, vergleicheStellen, PRESETS, STATIONEN, SZENARIEN };
 }

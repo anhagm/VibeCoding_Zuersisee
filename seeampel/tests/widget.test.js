@@ -83,3 +83,21 @@ test('Parameter werden verstanden', () => {
   assert.equal(W.leseParameter('').station, 'tiefenbrunnen');
   assert.ok(W.leseParameter('###').warnung);
 });
+
+test('gespeichertes Profil ist die Grundlage, der Parameter überschreibt nur einzelne Teile', () => {
+  const gespeichert = { name: 'Anna', profil: { name: 'Isbär', lieblingstemperatur: 7, toleranz: 'weit' }, station: 'mythenquai' };
+  assert.equal(W.leseParameter('', null).eingerichtet, false);
+  assert.equal(W.leseParameter('test=sonne', null).eingerichtet, true);
+  const ein = W.leseParameter('', gespeichert);
+  assert.deepEqual([ein.eingerichtet, ein.name, ein.station, ein.profil.lieblingstemperatur], [true, 'Anna', 'mythenquai', 7]);
+  const zweit = W.leseParameter('Tiefenbrunnen, test=kalt', gespeichert);
+  assert.deepEqual([zweit.name, zweit.station, zweit.profil.name, zweit.test], ['Anna', 'tiefenbrunnen', 'Isbär', 'kalt']);
+  assert.equal(gespeichert.station, 'mythenquai');
+});
+
+test('Wohlfühlbereiche und Name wie in der PWA', async () => {
+  const { bereiche } = await import('../js/logic/rating.js');
+  for (const F of [4, 7, 18, 23, 28]) for (const t of ['eng', 'mittel', 'weit']) gleich(W.bereiche(F, t), bereiche(F, t));
+  assert.equal(W.sauberName('  Anna   Maria '), 'Anna Maria');
+  assert.equal(W.sauberName('   '), null);
+});
