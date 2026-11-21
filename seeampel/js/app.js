@@ -188,14 +188,14 @@ async function start() {
   ctx.profil = ladeProfil();
   if (ctx.profil) ctx.ansichtStation = ctx.profil.station;
 
-  // Bei jedem Laden eintauchen: beim ersten Start lang (2,5 s), danach kurz (1,7 s), während die Daten laden.
+  // Intro mit «Seeampel» nur beim ersten Start (2,5 s). Danach zeigt das Laden nur das Wasser,
+  // und der Inhalt blendet nach 0,8 bis 1,5 s ein: Die Antwort hat Vorrang.
   const reduziert = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const ersterStart = !ctx.profil;
-  if (!reduziert) zeigeIntro({ kurz: !ersterStart });
+  const intro = !ctx.profil && !reduziert;
+  if (intro) zeigeIntro();
 
   const daten = Promise.all([ladeStationen(), ladeEintraege()]);
-  const dauer = ersterStart ? INTRO_MS.lang : INTRO_MS.kurz;
-  await einblendenNachLaden(daten, render, reduziert ? LADEN : { minMs: dauer - 400, maxMs: dauer - 400 });
+  await einblendenNachLaden(daten, render, intro ? { minMs: INTRO_MS.lang - 400, maxMs: INTRO_MS.lang - 400 } : LADEN);
 
   // Am Desktop schwimmt nach dem Laden einmal ein Fisch durch (nur auf der Startseite und wenn das Wasser einladend ist).
   if (!reduziert && route() === 'start') setTimeout(fischParade, 700);
