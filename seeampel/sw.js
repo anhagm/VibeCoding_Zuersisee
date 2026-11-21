@@ -1,6 +1,6 @@
 // Service Worker. Nach jeder Änderung an App-Dateien VERSION erhöhen,
 // sonst sehen installierte Apps die alte Version.
-const VERSION = 'seeampel-v10';
+const VERSION = 'seeampel-v11';
 const DATEN = 'seeampel-daten';
 
 const SHELL = [

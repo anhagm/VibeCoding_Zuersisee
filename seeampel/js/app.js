@@ -9,7 +9,8 @@ import { szenario, testMessungJson, testPrognoseJson, testTagebuch } from './dat
 import { ladeProfil, speichereProfil, nutzeFluechtigenSpeicher } from './storage/profile.js';
 import { alleEintraege, nutzeDatenbank, leeren as tagebuchLeeren, speichereViele } from './storage/diary-db.js';
 import { starteHintergrund } from './ui/background.js';
-import { zeigeIntro } from './ui/intro.js';
+import { zeigeIntro, INTRO_MS } from './ui/intro.js';
+import { fischParade } from './ui/fisch.js';
 import { einblendenNachLaden } from './ui/loader.js';
 import { startAnsicht } from './ui/home-view.js';
 import { profilAnsicht } from './ui/profile-view.js';
@@ -187,13 +188,17 @@ async function start() {
   ctx.profil = ladeProfil();
   if (ctx.profil) ctx.ansichtStation = ctx.profil.station;
 
-  // Erster Start: einmal eintauchen (2,5 s). Danach nur so lange, wie die Daten laden.
+  // Bei jedem Laden eintauchen: beim ersten Start lang (2,5 s), danach kurz (1,7 s), während die Daten laden.
   const reduziert = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const intro = !ctx.profil && !reduziert;
-  if (intro) zeigeIntro();
+  const ersterStart = !ctx.profil;
+  if (!reduziert) zeigeIntro({ kurz: !ersterStart });
 
   const daten = Promise.all([ladeStationen(), ladeEintraege()]);
-  await einblendenNachLaden(daten, render, intro ? { minMs: 2000, maxMs: 2000 } : LADEN);
+  const dauer = ersterStart ? INTRO_MS.lang : INTRO_MS.kurz;
+  await einblendenNachLaden(daten, render, reduziert ? LADEN : { minMs: dauer - 400, maxMs: dauer - 400 });
+
+  // Am Desktop schwimmt nach dem Laden einmal ein Fisch durch (nur auf der Startseite und wenn das Wasser einladend ist).
+  if (!reduziert && route() === 'start') setTimeout(fischParade, 700);
 
   window.addEventListener('hashchange', render);
   dunkelMq.addEventListener('change', (e) => { ctx.dunkel = e.matches; render(); });

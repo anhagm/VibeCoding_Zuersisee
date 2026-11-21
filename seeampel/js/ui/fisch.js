@@ -1,9 +1,10 @@
-// Fischlein am Desktop: Steht die Maus 2 Sekunden still, schwimmt ein Fisch zu ihr.
+// Fischlein am Desktop: Nach dem Laden schwimmt er einmal durchs Bild.
+// Steht die Maus danach 3 Sekunden still, schwimmt er zu ihr.
 // Bewegt sich die Maus, flüchtet er. Er folgt den Daten wie die übrige Szene:
 // kein Fisch beim Veto, bei veralteten Daten oder Fehlern; kaltes Wasser macht ihn träge.
 // Nur mit Maus (hover + feiner Zeiger), nie bei "Bewegung reduzieren".
 
-const WARTEN_MS = 2000;
+const WARTEN_MS = 3000;
 const ABSTAND = 46;        // so nahe kommt er an den Zeiger
 const FLUCHT_RADIUS = 160; // so nahe darf die Maus kommen, bevor er flüchtet
 
@@ -13,7 +14,7 @@ let tempo = 1;             // aus der Wassertemperatur
 let maus = null;
 let timer = null;
 let raf = null;
-let zustand = 'weg';       // weg | kommt | da | flieht
+let zustand = 'weg';       // weg | parade | kommt | da | flieht
 let pos = { x: 0, y: 0 };
 let ziel = { x: 0, y: 0 };
 let letzteZeit = 0;
@@ -39,7 +40,7 @@ export function starteFisch() {
   window.addEventListener('mousemove', (e) => {
     maus = { x: e.clientX, y: e.clientY };
     clearTimeout(timer);
-    if (zustand === 'kommt' || zustand === 'da') {
+    if (zustand === 'kommt' || zustand === 'da' || zustand === 'parade') {
       const d = Math.hypot(maus.x - pos.x, maus.y - pos.y);
       if (zustand === 'da' || d < FLUCHT_RADIUS) fliehen();
     }
@@ -54,6 +55,17 @@ export function setzeFisch({ darf, wasser }) {
   erlaubt = Boolean(darf);
   tempo = wasser == null ? 1 : Math.min(1.4, Math.max(0.5, (wasser - 4) / 16));
   if (!erlaubt && zustand !== 'weg') fliehen();
+}
+
+// Einmal quer durchs Bild, von links nach rechts, auf zwei Dritteln der Höhe.
+export function fischParade() {
+  if (!el || !erlaubt || zustand !== 'weg') return;
+  clearTimeout(timer);
+  pos = { x: -60, y: window.innerHeight * 0.62 };
+  ziel = { x: window.innerWidth + 120, y: window.innerHeight * 0.55 };
+  zustand = 'parade';
+  el.classList.add('sichtbar');
+  starteSchleife();
 }
 
 function kommen() {
@@ -102,8 +114,9 @@ function schritt(t) {
   const dx = ziel.x - pos.x;
   const dy = ziel.y - pos.y;
   const d = Math.hypot(dx, dy);
-  const max = (zustand === 'flieht' ? 700 : 380) * tempo;
-  const v = Math.min(max, d * (zustand === 'flieht' ? 6 : 2.4));
+  const parade = zustand === 'parade';
+  const max = (zustand === 'flieht' ? 700 : parade ? 360 : 380) * tempo;
+  const v = parade ? max : Math.min(max, d * (zustand === 'flieht' ? 6 : 2.4));
   if (d > 0.5) {
     pos.x += (dx / d) * v * dt;
     pos.y += (dy / d) * v * dt;
@@ -115,7 +128,7 @@ function schritt(t) {
   el.classList.toggle('schnell', zustand === 'flieht' || v > 120);
 
   if (zustand === 'kommt' && d < 4) zustand = 'da';
-  if (zustand === 'flieht' && (pos.x < -100 || pos.x > window.innerWidth + 100)) {
+  if ((zustand === 'flieht' || parade) && (pos.x < -100 || pos.x > window.innerWidth + 100)) {
     verschwinden();
     return;
   }
