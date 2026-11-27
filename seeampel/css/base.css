@@ -4,6 +4,14 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
+/* Wie eine App: kein seitliches Wischen. Hintergrundebenen und der Wellenring ragen bewusst
+   über den Rand hinaus; Safari auf dem iPhone würde das sonst als wischbare Fläche behandeln.
+   Zoomen bleibt erlaubt (kein maximum-scale, kein touch-action), auch das Verschieben im Zoom. */
+html, body { overflow-x: hidden; overscroll-behavior-x: none; }
+@supports (overflow-x: clip) {
+  html, body { overflow-x: clip; }
+}
+
 body {
   margin: 0;
   min-height: 100dvh;
